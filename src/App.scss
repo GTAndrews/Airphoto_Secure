@@ -1,4 +1,5 @@
-$header__height: 50px;
+
+$header__height: 69px;
 
 html,
 body {
@@ -17,20 +18,48 @@ html, body, #root, .App {
   background-color: #cfcfd4;
 }
 
-header {
-  text-align: center;
-  background-color: #222;
-  height: $header__height;
-  line-height: $header__height;
-  color: orange;
-  box-sizing: border-box;
+.navbar-brand {
+  display: flex;
+  align-items: center;
+}
+.navbar-brand>img {
+  padding: 5px 15px 5px 5px;
 }
 
-h1 {
-  margin: 0;
+/* Pop-up header works with these two */
+header {
+  text-align: center;
+  background-color: #154734;
+  color: white;
+  box-sizing: border-box;
+}
+header:hover{
+  color: #154734;
+  background-color: #f8f9fa;
+  transition: background-color 250ms ease-in-out;
+}
+
+.gradient-bg {
+  background-image: -webkit-linear-gradient(left,#FEFEFE 50%,#154734);
+}
+
+.search {
+  top: 15px;
 }
 
 /* Map view */
 #mapContainer {
   height: calc(100% - #{$header__height});
+}
+
+// query div
+#optionsDiv {
+  background-color: dimgray;
+  color: white;
+  padding: 10px;
+  width: 350px;
+}
+
+.grecaptcha-badge { 
+  visibility: hidden;
 }

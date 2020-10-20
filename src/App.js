@@ -1,47 +1,375 @@
 import React, { Component } from 'react';
+import 'bootstrap/dist/css/bootstrap.css';
+import '@esri/calcite-components';
+import { loadReCaptcha } from 'react-recaptcha-v3';
 import { loadModules, setDefaultOptions } from 'esri-loader';
-import { esriVersion } from "./config";
+import { esriVersion } from 'config';
+import Header from 'components/header';
+import LoginModal from 'components/secureSite';
+import { rollTemplate } from 'components/popup';
 
 import './App.scss';
 
-// configure esri-loader to use version 3.31 from the ArcGIS CDN
+// configure esri-loader to use version 4.16 from the ArcGIS CDN
 // NOTE: make sure this is called once before any calls to loadModules()
 setDefaultOptions({
   version: esriVersion,
   css: true,
 });
 
+console.log(Header); // should be included in Modal popup
+
 export default class App extends Component {
   componentDidMount = () => {
-    loadModules(['esri/Map', 'esri/views/MapView'])
-      .then(([Map, MapView]) => {
+    //loadReCaptcha('6Lcg4s4ZAAAAAB-TWHuox2PbiRAdV-ynnZLXyq4l') // localhost dev reCAPTCHA
+    loadReCaptcha('6LfAU7wUAAAAAHvGI0EUUruTd5AXr282zg6EXZdS') // MaDGIC reCAPTCHA
+    loadModules([
+      'esri/Map', 
+      'esri/views/MapView',
+      'esri/widgets/Home',
+      'esri/widgets/BasemapToggle',
+      'esri/layers/FeatureLayer',
+      'esri/layers/ImageryLayer',
+      'esri/popup/content/TextContent',
+      'esri/popup/content/AttachmentsContent',
+      'esri/tasks/QueryTask',
+      'esri/tasks/support/Query',
+      'esri/widgets/Search',
+      'esri/widgets/LayerList'])
+      .then(([Map, MapView, Home, BasemapToggle, FeatureLayer, ImageryLayer, TextContent, AttachmentsContent, QueryTask, Query, Search, LayerList]) => {
         const map = new Map({
-          basemap: 'gray-vector',
+          basemap: 'topo-vector',
         });
 
         // eslint-disable-next-line no-unused-vars
-        const mapView = new MapView({
+        const view = new MapView({
           map: map,
           container: 'mapContainer',
-          basemap: 'gray-vector',
-          center: [-100, 30],
-          zoom: 5,
+		    // basemap: 'gray-vector', // this is a nice basemap for basic apps
+          basemap: 'topo-vector',
+          center: [-78.3, 44.3],
+          zoom: 8,
+          popup: {
+            dockEnabled: true,
+            dockOptions: {
+              buttonEnabled: false,
+              breakpoint: false
+            }
+          }
         });
 
+        const footprintsLayer = new FeatureLayer({
+          url:
+            "http://madgic.trentu.ca/arcgis/rest/services/NAPLIndex/NAPLIndex/MapServer/2",
+            outFields: ["*"],
+            title: "Generalized Footprint"
+        });
+        map.add(footprintsLayer, 0);
+        footprintsLayer.load().then(function(){
+          console.log("Footprints loaded successfully.");
+        });
+
+        const flightLineLayer = new FeatureLayer({
+          url:
+          "http://madgic.trentu.ca/arcgis/rest/services/NAPLIndex/NAPLIndex/MapServer/1",
+          outFields: ["YEAR", "ROLL", "PROVINCE"],
+          opacity: 0.75,
+          popupTemplate: rollTemplate,
+          minScale: 1200000,
+          maxScale: 50000,
+          title: "Flight Lines"
+        });
+        map.add(flightLineLayer, 0);
+        flightLineLayer.load().then(function(){
+          console.log("Flightlines loaded successfully.");
+        });
+
+        const textElement = new TextContent();
+        const photoContent = 
+          textElement.text = 
+            "<table class='esri-widget__table'><tr><th>Roll</th><td>{ROLL}</td></tr><tr><th>Photo</th><td>{PHOTO}</td></tr><tr><th>Capture Date</th><td>{NAPL_DATE}</td></tr><tr><th>Line Number</th><td>{LINE_NO}</td></tr><tr><th>Centre (<i>WGS 1984</i>)</th><td>{CNTR_LAT}, {CNTR_LON}</td></tr><tr><th>Altitude (<i>ft</i>)</th><td>{ALTITUDE}</td></tr><tr><th>Scale (<i>relative</i>)</th><td>{SCALE}</td></tr><tr><th>Camera</th><td>{CAMERA}</td></tr><tr><th>Lens</th><td>{LENS_NAME}</td></tr><tr><th>Focal Length (<i>mm</i>)</th><td>{FOCAL_LEN}</td></tr><tr><th>Film Type</th><td>{FILM_TYPE}</td></tr><tr><th>Film size (<i>mm</i>)</th><td>{FILM_SIZE}</td></tr><tr><th>Photo Dimensions (<i>in</i>)</th><td>{WIDTH} x {HEIGHT}</td></tr><tr><th>File Name</th><td>{PHOTOID}</td></tr></table>"
+
+        const photoLayer = new FeatureLayer({
+          url:
+          "https://madgic.trentu.ca/arcgis/rest/services/NAPLIndex/AirPhoto_Points/MapServer/0",
+          outFields: ["*"],
+          opacity: 0.75,
+          popupTemplate:{
+            title: "Photo <b>{ROLL}-{PHOTO}</b> caputred on <b>{NAPL_DATE}</b>:",
+            actions: [
+              {
+                id: "view-photo",
+                className: "esri-icon-visible",
+                title: "View"
+              },{
+                id: "download-photo",
+                className: "esri-icon-download",
+                title: "Download"
+              }
+            ],
+            content: photoContent,
+            fieldInfos: [
+              {
+                fieldName: "ROLL"
+              },{
+                fieldName: "PHOTO"
+              },{
+                fieldName: "BOX"
+              },{
+                fieldName: "STATUS"
+              },{
+                fieldName: "NAPL_DATE"
+              },{
+                fieldName: "ALTITUDE"
+              },{
+                fieldName: "SCALE"
+              },{
+                fieldName: "CAMERA"
+              },{
+                fieldName: "CNTR_LAT"
+              },{
+                fieldName: "CNTR_LON"
+              },{
+                fieldName: "FOCAL_LEN"
+              },{
+                fieldName: "LINE_NO"
+              },{
+                fieldName: "FILM_TYPE"
+              },{
+                fieldName: "FILM_SIZE"
+              },{
+                fieldName: "LENS_NAME"
+              },{
+                fieldName: "WIDTH"
+              },{
+                fieldName: "HEIGHT"
+              },{ // custom format to hide this
+                fieldName: "DownloadURL"
+              },{
+                fieldName: "Year_"
+              },{
+                fieldName: "RASTERID"
+              },{
+                fieldName: "PHOTOID"
+              }
+            ]
+          },
+          minScale: 150000,
+          maxScale: 1,
+          title: "Airphoto Points"
+        });
+
+        map.add(photoLayer);
+        photoLayer.load().then(function(){
+          console.log("Photos loaded successfully.");
+        });
+        view.when("selectedFeature", function () {
+          // Watch for when features are selected
+          view.popup.watch(function (graphic) {
+            if (graphic) {
+              // Set the action's visible property to true if the 'DownloadURL' field value is not null, otherwise set it to false
+              var graphicTemplate = graphic.getEffectivePopupTemplate();
+              graphicTemplate.actions.items[1].visible = graphic.attributes
+                .DownloadURL
+                ? true
+                : false;
+            }
+          });
+        });
+        
+        view.when(function () {
+          var popup = view.popup;
+          popup.viewModel.on("trigger-action", function (event) {
+            if (event.action.id === "download-photo") {
+              var attributes = popup.viewModel.selectedFeature.attributes;
+              // Get the 'DownloadURL' field attribute
+              var info = attributes.DownloadURL;
+              var year = attributes.Year_;  // Store the photo year
+              var now = new Date();   // Retreive today's date
+              var yearNow = now.getFullYear();  // Select the current year from the date
+              var copyrightYear = yearNow - year;   // Subract photo year from current year. If > 50, photo not under copyright.
+              console.log("Photo from: " + year + " is " + copyrightYear + " years old.")
+              // Make sure the 'DownloadURL' field value is not null
+              if (info === null && year != null) {
+                // Insert Modal or disable Download button
+              } else if (info != null && copyrightYear < 50) {
+                // Login prompt to download photo
+                LoginModal.modal('toggleModal');
+              } else {
+                // Open up a new browser using the URL value in the 'DownloadURL' field
+                window.open(info.trim());
+                console.log(attributes.DownloadURL + " downloaded.")
+              }
+            }
+          });
+        });
+
+        view.when(function () {
+          var popup = view.popup;
+          popup.viewModel.on("trigger-action", function (event) {
+            if (event.action.id === "view-photo") {
+              var attributes = popup.viewModel.selectedFeature.attributes;
+              var photoID = attributes.RASTERID;
+              var layerID = attributes.PHOTOID;
+              var year = attributes.Year_;
+              console.log(year);
+              var serviceURL = "https://madgic.trentu.ca/arcgis/rest/services/airphoto/y" + year + "_Ref/ImageServer";
+              var defExp = "OBJECTID = " + String(photoID);
+              if (photoID === null) {
+                // Insert Error or disable View button
+              }else {
+                const photoView = new ImageryLayer({
+                  url:
+                    serviceURL,
+                    definitionExpression: defExp,
+                    title: layerID
+                });
+                map.add(photoView, 0);
+                photoView.load().then(function(){
+                  console.log(layerID + " added to map successfully.");
+                });
+              }
+            }
+          });
+        });
+
+        // Standard Home Widget
+        const homeWidget = new Home({
+          view: view,
+          container: document.createElement("div")
+        });
+        view.ui.add(homeWidget, {
+          position: "top-left"
+        });
+
+        /*var qTask = new QueryTask({
+          url: photoLayer
+        });
+        var params = new Query({
+          returnGeometry: true,
+          outFields: ["*"]
+        });
+
+        view.when(funciton() {
+          view.ui.add("optionsDiv", "bottom-right");
+          document.getElementById("doBtn").addEventListener("click", doQuery);
+        });
+        var yearSel = document.getElementById("yearSelection");
+        var rollSel = document.getElementById("rollSelection");
+        var photoSel =document.getElementById("photoSelection");
+        
+        function doQuery() {
+          resultsLayer.removeAll();
+          params.where = yearSelection.value + rollSelection.value + photoSelection.value;
+          qTask.execute(params).then(getResults).catch(promiseRejected);
+        }
+
+        function getResults(response) {
+          var photoResults = response.features.map(function (feature) {
+            feture.symbol = {
+              type: "point",
+              symbolLayers: [
+                {
+                  ***Define 2D symbol for results***
+                }
+              ]
+            };
+            feture.popupTemplate = popupTemplate;
+            return feature;
+          });
+          resultsLayer.addMany(photoResults);
+          view
+            .goTo(photoResults)
+            .then(funtion () {
+              view.popup.open({
+                features: photoResults,
+                featureMenuOpen: true,
+                updateLocationEnabled: true
+              });
+            })
+            .catch(feature (error) {
+              if (error.name != "AbortError") {
+                console.error(error);
+              }
+            });
+          document.getElementById("printResults").innerHTML =
+            photoResults.length + " results found!";
+        }
+
+        funtion promiseRejected(error) {
+          console.error("Promise rejected: ", error.message);
+        }
+        */
+
+        const searchWidget = new Search ({
+          view: view,
+          allPlaceholder: "Search Location or Photo",
+          sources: [
+            {
+              layer: photoLayer,
+              searchFields: ["ROLL"],
+              suggestionTemplate: "{ROLL} - {PHOTO}, year: {Year_}",
+              exactMatch: false,
+              outFields: ["*"],
+              name: "Roll Search",
+              placeholder: "example: A23979",
+              zoomScale: 30000
+            },{
+              layer: photoLayer,
+              searchFields: ["PHOTOID"],
+              suggestionTemplate: "{PHOTOID}, year: {Year_}",
+              exactMatch: false,
+              outFields: ["*"],
+              name: "Photo Search",
+              placeholder: "example: A13111-096",
+              zoomScale: 30000
+            }
+          ]
+        });
+        view.ui.add(searchWidget, {
+          position: "top-right"
+        });
+
+        // Standard Basemap Toggle
+        const toggle = new BasemapToggle ({
+          view: view,
+          nextBasemap: "hybrid",
+          container: 'widgetView'
+        });
+        view.ui.add(toggle, {
+          position: "bottom-left"
+        });
+
+        // Layer List Widget
+        view.when(function () {
+          var layerList = new LayerList({
+            view: view
+          });
+
+          // Add widget to the bottom right corner of the view
+          view.ui.add(layerList, "bottom-right");
+        });
       })
       .catch((err) => {
         console.error(err);
       });
   };
 
+  componentWillUnmount() {
+    if (this.view) {
+      // destroy the map view
+      this.view.container = null;
+    }
+  }
+
   render() {
     return (
       <div className='App'>
-        <header className='App-header'>
-          <h1>GIS Tools - ESRI App</h1>
-        </header>
-        <main id='mapContainer' />
+        <Header />
+        <div id='mapContainer' className="esri-widget"/>
       </div>
     );
   }
 }
+
+// logo: <img src={logo} alt="Trent University Library & Archives" /> 
