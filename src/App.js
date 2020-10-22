@@ -5,7 +5,6 @@ import { loadReCaptcha } from 'react-recaptcha-v3';
 import { loadModules, setDefaultOptions } from 'esri-loader';
 import { esriVersion } from 'config';
 import Header from 'components/header';
-import LoginModal from 'components/secureSite';
 import { rollTemplate } from 'components/popup';
 
 import './App.scss';
@@ -84,10 +83,11 @@ export default class App extends Component {
           console.log("Flightlines loaded successfully.");
         });
 
+        // Set custom popup content for Photo Layer
         const textElement = new TextContent();
         const photoContent = 
           textElement.text = 
-            "<table class='esri-widget__table'><tr><th>Roll</th><td>{ROLL}</td></tr><tr><th>Photo</th><td>{PHOTO}</td></tr><tr><th>Capture Date</th><td>{NAPL_DATE}</td></tr><tr><th>Line Number</th><td>{LINE_NO}</td></tr><tr><th>Centre (<i>WGS 1984</i>)</th><td>{CNTR_LAT}, {CNTR_LON}</td></tr><tr><th>Altitude (<i>ft</i>)</th><td>{ALTITUDE}</td></tr><tr><th>Scale (<i>relative</i>)</th><td>{SCALE}</td></tr><tr><th>Camera</th><td>{CAMERA}</td></tr><tr><th>Lens</th><td>{LENS_NAME}</td></tr><tr><th>Focal Length (<i>mm</i>)</th><td>{FOCAL_LEN}</td></tr><tr><th>Film Type</th><td>{FILM_TYPE}</td></tr><tr><th>Film size (<i>mm</i>)</th><td>{FILM_SIZE}</td></tr><tr><th>Photo Dimensions (<i>in</i>)</th><td>{WIDTH} x {HEIGHT}</td></tr><tr><th>File Name</th><td>{PHOTOID}</td></tr></table>"
+            "<table class='esri-widget__table'><tr><th>Roll</th><td>{ROLL}</td></tr><tr><th>Photo</th><td>{PHOTO}</td></tr><tr><th>Capture Date</th><td>{NAPL_DATE}</td></tr><tr><th>Line Number</th><td>{LINE_NO}</td></tr><tr><th>Centre (<i>WGS 1984</i>)</th><td>{CNTR_LAT}, {CNTR_LON}</td></tr><tr><th>Altitude (<i>ft</i>)</th><td>{ALTITUDE}</td></tr><tr><th>Scale (<i>relative</i>)</th><td>{SCALE}</td></tr><tr><th>Camera</th><td>{CAMERA}</td></tr><tr><th>Lens</th><td>{LENS_NAME}</td></tr><tr><th>Focal Length (<i>mm</i>)</th><td>{FOCAL_LEN}</td></tr><tr><th>Film Type</th><td>{FILM_TYPE}</td></tr><tr><th>Film size (<i>mm</i>)</th><td>{FILM_SIZE}</td></tr><tr><th>Photo Dimensions (<i>in</i>)</th><td>{WIDTH} x {HEIGHT}</td></tr><tr><th>Box</th><td>{BOX}</td></tr><tr><th>File Name</th><td>{PHOTOID}</td></tr><tr style='display:none;'><th>Photo Year</th><td>{Year_}</td></tr><tr style='display:none;'><th>Raster ID</th><td>{RASTERID}</td></tr><tr style='display:none;'><th>Download URL</th><td>{DownloadURL}</td></tr></table>"
 
         const photoLayer = new FeatureLayer({
           url:
@@ -143,10 +143,13 @@ export default class App extends Component {
                 fieldName: "WIDTH"
               },{
                 fieldName: "HEIGHT"
+              },{
+                fieldName: "BOX"
               },{ // custom format to hide this
                 fieldName: "DownloadURL"
               },{
-                fieldName: "Year_"
+                fieldName: "Year_",
+                visible: false
               },{
                 fieldName: "RASTERID"
               },{
@@ -163,42 +166,35 @@ export default class App extends Component {
         photoLayer.load().then(function(){
           console.log("Photos loaded successfully.");
         });
-        view.when("selectedFeature", function () {
+
+        view.when(function () {
           // Watch for when features are selected
-          view.popup.watch(function (graphic) {
+          view.popup.watch("selectedFeature", function (graphic) {
             if (graphic) {
-              // Set the action's visible property to true if the 'DownloadURL' field value is not null, otherwise set it to false
+              // Set the action's visible property to true if the 'website' field value is not null, otherwise set it to false
               var graphicTemplate = graphic.getEffectivePopupTemplate();
-              graphicTemplate.actions.items[1].visible = graphic.attributes
-                .DownloadURL
-                ? true
-                : false;
+              if (graphicTemplate.title !== "Roll <b>{ROLL}</b> caputred in <b>{YEAR}</b>") {
+                graphicTemplate.actions.items[1].disabled = graphic.attributes
+                  .DownloadURL
+                  ? false
+                  : true;
+              }
             }
           });
         });
-        
         view.when(function () {
           var popup = view.popup;
           popup.viewModel.on("trigger-action", function (event) {
             if (event.action.id === "download-photo") {
               var attributes = popup.viewModel.selectedFeature.attributes;
-              // Get the 'DownloadURL' field attribute
+              // Get the 'website' field attribute
               var info = attributes.DownloadURL;
-              var year = attributes.Year_;  // Store the photo year
-              var now = new Date();   // Retreive today's date
-              var yearNow = now.getFullYear();  // Select the current year from the date
-              var copyrightYear = yearNow - year;   // Subract photo year from current year. If > 50, photo not under copyright.
-              console.log("Photo from: " + year + " is " + copyrightYear + " years old.")
-              // Make sure the 'DownloadURL' field value is not null
-              if (info === null && year != null) {
-                // Insert Modal or disable Download button
-              } else if (info != null && copyrightYear < 50) {
-                // Login prompt to download photo
-                LoginModal.modal('toggleModal');
-              } else {
-                // Open up a new browser using the URL value in the 'DownloadURL' field
+              var photoID = attributes.PHOTOID;
+              // Make sure the 'website' field value is not null
+              if (info) {
+                // Open up a new browser using the URL value in the 'website' field
                 window.open(info.trim());
-                console.log(attributes.DownloadURL + " downloaded.")
+                console.log(photoID + " successfully downloaded.")
               }
             }
           });
@@ -211,11 +207,12 @@ export default class App extends Component {
               var attributes = popup.viewModel.selectedFeature.attributes;
               var photoID = attributes.RASTERID;
               var layerID = attributes.PHOTOID;
-              var year = attributes.Year_;
+              var yearStr = attributes.Year_;
+              var year = parseInt(yearStr);
               console.log(year);
-              var serviceURL = "https://madgic.trentu.ca/arcgis/rest/services/airphoto/y" + year + "_Ref/ImageServer";
+              var serviceURL = "https://madgic.trentu.ca/arcgis/rest/services/airphoto/y" + yearStr + "_Ref/ImageServer";
               var defExp = "OBJECTID = " + String(photoID);
-              if (photoID === null) {
+              if (year > 1954) {
                 // Insert Error or disable View button
               }else {
                 const photoView = new ImageryLayer({
@@ -224,6 +221,7 @@ export default class App extends Component {
                     definitionExpression: defExp,
                     title: layerID
                 });
+
                 map.add(photoView, 0);
                 photoView.load().then(function(){
                   console.log(layerID + " added to map successfully.");
@@ -231,6 +229,16 @@ export default class App extends Component {
               }
             }
           });
+        });
+
+        // Layer List Widget
+        view.when(function () {
+          var layerList = new LayerList({
+            view: view,
+            // add opacity sliders for photos added to map
+          });
+          // Add widget to the bottom right corner of the view
+          view.ui.add(layerList, "bottom-right");
         });
 
         // Standard Home Widget
@@ -338,16 +346,6 @@ export default class App extends Component {
         });
         view.ui.add(toggle, {
           position: "bottom-left"
-        });
-
-        // Layer List Widget
-        view.when(function () {
-          var layerList = new LayerList({
-            view: view
-          });
-
-          // Add widget to the bottom right corner of the view
-          view.ui.add(layerList, "bottom-right");
         });
       })
       .catch((err) => {
