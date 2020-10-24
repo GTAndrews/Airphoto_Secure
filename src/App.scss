@@ -63,3 +63,9 @@ header:hover{
 .grecaptcha-badge { 
   visibility: hidden;
 }
+
+ol {
+  list-style: none;
+  display: flex;
+  align-items: center;
+}

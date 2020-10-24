@@ -347,6 +347,8 @@ export default class App extends Component {
         view.ui.add(toggle, {
           position: "bottom-left"
         });
+
+        map.reorder(footprintsLayer, 2); // Move Generalized Footprint to top of Layer List
       })
       .catch((err) => {
         console.error(err);
