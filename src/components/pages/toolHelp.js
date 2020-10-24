@@ -19,7 +19,7 @@ const ToolHelp = ({ children }) => (
     <b>Zoom Controls:</b>
     <p>There are two ways to zoom in and out of the map: using the mouse wheel or the zoom controls at the top-left corner. As the zoom is adjusted layers will switch from hidden to visible this will be discussed in the <i>Layer List</i> section.</p>
     <b>Quick Search:</b>
-    <p>Searching for a location or a specific Photo is achieved through the Search tool at the top-right corner of the map. The down arrow will show options for selecting what your search is for, options are: ArcGIS World Geocoding Service, Roll Search and Photo Search. The ArcGIS World Geoding Service searches any location on Earth and will drop a dark dot in the selected location. The Roll and Photo searches will search the index of Trent's Airphotos.</p>
+    <p>Searching for a location or a specific Photo is achieved through the Search tool at the top-right corner of the map. The down arrow will show options for selecting what your search is for, options are: ArcGIS World Geocoding Service, Roll Search and Photo Search. The ArcGIS World Geocoding Service searches any location on Earth and will drop a dark dot in the selected location. The Roll and Photo searches will search the index of Trent's Airphotos.</p>
     <p><i>Roll Example</i>=&#62; <i>NAPL</i>: A18757 || <i>MNRF</i>: R001-4427</p>
     <p><i>Photo Example</i>=&#62; <i>NAPL</i>: A01054-030 || <i>MNRF</i>: R073-4425-033</p>
     <b>Basemap Toggle:</b>

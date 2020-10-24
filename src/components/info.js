@@ -14,10 +14,10 @@ const InfoModal = (props) => {
   const modaltoggle = () => setModal(!modal);
 
   const items = [
-    { to: '/infoHome', label: 'Info Home' },
-    { to: '/citation', label: 'Citation' },
-    { to: '/toolHelp', label: 'ToolHelp'},
-    { to: '/contact', label: 'Contact' }
+    { to: '/airphoto2020/', label: 'Info Home' },
+    { to: '/airphoto2020/citation', label: 'Citation' },
+    { to: '/airphoto2020/toolHelp', label: 'ToolHelp'},
+    { to: '/airphoto2020/contact', label: 'Contact' }
   ]
 
   return (
@@ -34,10 +34,10 @@ const InfoModal = (props) => {
               ))}
             </Breadcrumb>
             <Router>
-              <Home path='/infoHome' />
-              <Citation path='/citation' />
-              <ToolHelp path='/toolHelp' />
-              <Contact path='/contact' />
+              <Home path='/airphoto2020/' />
+              <Citation path='/airphoto2020/citation' />
+              <ToolHelp path='/airphoto2020/toolHelp' />
+              <Contact path='/airphoto2020/contact' />
             </Router>
           </ModalBody>
           <ModalFooter>
