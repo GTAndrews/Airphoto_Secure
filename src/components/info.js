@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { Link, Router } from '@reach/router';
 import { Nav, NavLink, Button, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 import Home from 'components/pages/infoHome';
+import ToolHelp from 'components/pages/toolHelp';
 import Citation from 'components/pages/citation';
 import Contact from 'components/pages/contact';
-import ToolHelp from 'components/pages/toolHelp';
 import Breadcrumb from 'components/Breadcrumb';
 
 const InfoModal = (props) => {
@@ -15,8 +15,8 @@ const InfoModal = (props) => {
 
   const items = [
     { to: '/airphoto2020/', label: 'Info Home' },
+    { to: '/airphoto2020/toolHelp', label: 'Tool Help'},
     { to: '/airphoto2020/citation', label: 'Citation' },
-    { to: '/airphoto2020/toolHelp', label: 'ToolHelp'},
     { to: '/airphoto2020/contact', label: 'Contact' }
   ]
 
@@ -35,8 +35,8 @@ const InfoModal = (props) => {
             </Breadcrumb>
             <Router>
               <Home path='/airphoto2020/' />
-              <Citation path='/airphoto2020/citation' />
               <ToolHelp path='/airphoto2020/toolHelp' />
+              <Citation path='/airphoto2020/citation' />
               <Contact path='/airphoto2020/contact' />
             </Router>
           </ModalBody>

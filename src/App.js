@@ -89,13 +89,56 @@ export default class App extends Component {
           textElement.text = 
             "<table class='esri-widget__table'><tr><th>Roll</th><td>{ROLL}</td></tr><tr><th>Photo</th><td>{PHOTO}</td></tr><tr><th>Capture Date</th><td>{NAPL_DATE}</td></tr><tr><th>Line Number</th><td>{LINE_NO}</td></tr><tr><th>Centre (<i>WGS 1984</i>)</th><td>{CNTR_LAT}, {CNTR_LON}</td></tr><tr><th>Altitude (<i>ft</i>)</th><td>{ALTITUDE}</td></tr><tr><th>Scale (<i>relative</i>)</th><td>{SCALE}</td></tr><tr><th>Camera</th><td>{CAMERA}</td></tr><tr><th>Lens</th><td>{LENS_NAME}</td></tr><tr><th>Focal Length (<i>mm</i>)</th><td>{FOCAL_LEN}</td></tr><tr><th>Film Type</th><td>{FILM_TYPE}</td></tr><tr><th>Film size (<i>mm</i>)</th><td>{FILM_SIZE}</td></tr><tr><th>Photo Dimensions (<i>in</i>)</th><td>{WIDTH} x {HEIGHT}</td></tr><tr><th>Box</th><td>{BOX}</td></tr><tr><th>File Name</th><td>{PHOTOID}</td></tr><tr style='display:none;'><th>Photo Year</th><td>{Year_}</td></tr><tr style='display:none;'><th>Raster ID</th><td>{RASTERID}</td></tr><tr style='display:none;'><th>Download URL</th><td>{DownloadURL}</td></tr></table>"
 
+        const clusterConfig = {
+          type: "cluster",
+          clusterRadius: "100px",
+          visible: false,
+          // {cluster_count} is an aggregate field containing
+          // the number of features comprised by the cluster
+          labelingInfo: [
+            {
+              deconflictionStrategy: "none",
+              labelExpressionInfo: {
+                expression: "Text($feature.cluster_count, '##')"
+              },
+              symbol: {
+                type: "text",
+                font: {
+                  weight: "bold",
+                  family: "Noto Sans",
+                  size: "12px"
+                },
+                haloSize: 1,
+                haloColor: "white"
+              },
+              labelPlacement: "center-center"
+            }
+          ]
+        };
+
+        const photoCluster = new FeatureLayer({
+          url: "https://madgic.trentu.ca/arcgis/rest/services/NAPLIndex/AirPhoto_Points/MapServer/0",
+          outFields: ["*"],
+          opacity: 0,
+          minScale: 60000,
+          maxScale: 1,
+          title: "Airphoto Clusters",
+          featureReduction: clusterConfig,
+          listMode: "hide",
+          popupEnabled: false
+        });
+
+        map.add(photoCluster);
+        photoCluster.load().then(function(){
+          console.log("Photo Clusters loaded successfully.");
+        });
+
         const photoLayer = new FeatureLayer({
-          url:
-          "https://madgic.trentu.ca/arcgis/rest/services/NAPLIndex/AirPhoto_Points/MapServer/0",
+          url: "https://madgic.trentu.ca/arcgis/rest/services/NAPLIndex/AirPhoto_Points/MapServer/0",
           outFields: ["*"],
           opacity: 0.75,
           popupTemplate:{
-            title: "Photo <b>{ROLL}-{PHOTO}</b> caputred on <b>{NAPL_DATE}</b>:",
+            title: "Photo <b>{ROLL}-{PHOTO}</b> caputred on <b>{NAPL_DATE}</b>",
             actions: [
               {
                 id: "view-photo",
@@ -171,15 +214,16 @@ export default class App extends Component {
           // Watch for when features are selected
           view.popup.watch("selectedFeature", function (graphic) {
             if (graphic) {
-              // Set the action's visible property to true if the 'website' field value is not null, otherwise set it to false
+              // Set the action's visible property to true if the 'DownloadURL' field value is not null, otherwise set it to false
               var graphicTemplate = graphic.getEffectivePopupTemplate();
-              if (graphicTemplate.title !== "Roll <b>{ROLL}</b> caputred in <b>{YEAR}</b>") {
+              if (graphicTemplate.title === "Photo <b>{ROLL}-{PHOTO}</b> caputred on <b>{NAPL_DATE}</b>") {
+                console.log(graphic.attributes.DownloadURL)
                 graphicTemplate.actions.items[1].disabled = graphic.attributes
-                  .DownloadURL
-                  ? false
-                  : true;
+                .DownloadURL
+                ? false
+                : true;
               }
-            }
+            };
           });
         });
         view.when(function () {
@@ -235,6 +279,17 @@ export default class App extends Component {
         view.when(function () {
           var layerList = new LayerList({
             view: view,
+            // add Legend to Layer List for Photo Points
+            listItemCreatedFunction: function (event) {
+              const item = event.item;
+              if (item.layer.title === "Airphoto Points") {
+                // don't show legend twice
+                item.panel = {
+                  content: "legend",
+                  open: false
+                };
+              }
+            }
             // add opacity sliders for photos added to map
           });
           // Add widget to the bottom right corner of the view
@@ -348,7 +403,7 @@ export default class App extends Component {
           position: "bottom-left"
         });
 
-        map.reorder(footprintsLayer, 2); // Move Generalized Footprint to top of Layer List
+        map.reorder(footprintsLayer, 3); // Move Generalized Footprint to top of Layer List
       })
       .catch((err) => {
         console.error(err);
