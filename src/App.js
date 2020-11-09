@@ -5,6 +5,7 @@ import { loadReCaptcha } from 'react-recaptcha-v3';
 import { loadModules, setDefaultOptions } from 'esri-loader';
 import { esriVersion } from 'config';
 import Header from 'components/header';
+import Cookies from 'components/cookies';
 import { rollTemplate } from 'components/popup';
 
 import './App.scss';
@@ -91,7 +92,7 @@ export default class App extends Component {
 
         const clusterConfig = {
           type: "cluster",
-          clusterRadius: "100px",
+          clusterRadius: "10px",
           visible: false,
           // {cluster_count} is an aggregate field containing
           // the number of features comprised by the cluster
@@ -106,7 +107,7 @@ export default class App extends Component {
                 font: {
                   weight: "bold",
                   family: "Noto Sans",
-                  size: "12px"
+                  size: "10px"
                 },
                 haloSize: 1,
                 haloColor: "white"
@@ -191,8 +192,7 @@ export default class App extends Component {
               },{ // custom format to hide this
                 fieldName: "DownloadURL"
               },{
-                fieldName: "Year_",
-                visible: false
+                fieldName: "Year_"
               },{
                 fieldName: "RASTERID"
               },{
@@ -256,8 +256,9 @@ export default class App extends Component {
               console.log(year);
               var serviceURL = "https://madgic.trentu.ca/arcgis/rest/services/airphoto/y" + yearStr + "_Ref/ImageServer";
               var defExp = "OBJECTID = " + String(photoID);
-              if (year > 1954) {
+              if (year > 1970) {
                 // Insert Error or disable View button
+                console.log("Viewing is not active for this photo.")
               }else {
                 const photoView = new ImageryLayer({
                   url:
@@ -405,6 +406,7 @@ export default class App extends Component {
 
         map.reorder(footprintsLayer, 3); // Move Generalized Footprint to top of Layer List
       })
+
       .catch((err) => {
         console.error(err);
       });
@@ -422,6 +424,7 @@ export default class App extends Component {
       <div className='App'>
         <Header />
         <div id='mapContainer' className="esri-widget"/>
+        <Cookies />
       </div>
     );
   }

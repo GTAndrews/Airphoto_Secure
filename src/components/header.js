@@ -24,17 +24,17 @@ const Header = (props) => {
       <div>
         <Navbar color="dark" dark expand="md">
           <NavbarBrand href= "/airphoto2020">
-            <img src={logo} alt='Trent University Crest' height="40"/><b>Airphoto</b> &nbsp; <i>beta</i>
+            <img src={logo} alt='Trent University Crest, reload application' height="40"/><b>Airphoto</b>&nbsp;<i>beta</i>
           </NavbarBrand>
           <NavbarToggler onClick={toggle} />
         <Collapse isOpen={isOpen} navbar>
           <Nav className="mr-auto" navbar>
             <NavItem>
-              <NavLink href="https://www.trentu.ca/library/frontpage">Bata Library</NavLink>
+              <NavLink href="https://www.trentu.ca/library/frontpage" alt='Bata Library Homepage' target='_blank' rel='noopener noreferrer'>Bata Library</NavLink>
             </NavItem>
             <InfoModal></InfoModal>
             <Tools></Tools>
-            <NavbarText>&nbsp;&nbsp;<i>*** Photos from the years 1927 to 1960 are currently available to view and download ***</i></NavbarText>
+            <NavbarText>&nbsp;&nbsp; <i>*** Photos from 1927 to 1970 are available to view and download ***</i></NavbarText>
           </Nav>
           <NavbarText>Collection (coming soon):&#160;</NavbarText>
           <Collection></Collection>
