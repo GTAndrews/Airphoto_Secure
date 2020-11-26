@@ -20,6 +20,7 @@ setDefaultOptions({
 console.log(Header); // should be included in Modal popup
 
 export default class App extends Component {
+
   componentDidMount = () => {
     //loadReCaptcha('6Lcg4s4ZAAAAAB-TWHuox2PbiRAdV-ynnZLXyq4l') // localhost dev reCAPTCHA
     loadReCaptcha('6LfAU7wUAAAAAHvGI0EUUruTd5AXr282zg6EXZdS') // MaDGIC reCAPTCHA
@@ -83,7 +84,7 @@ export default class App extends Component {
             title: "Refined Footprint",
             opacity: 0.65,
             minScale: 6000000,
-            maxScale: 150000,
+            maxScale: 100000,
             popupEnabled: false
         });
         map.add(footprintsLayer, 0);
@@ -287,6 +288,7 @@ export default class App extends Component {
                     title: layerID
                 });
                 map.add(photoView, 0);
+                map.reorder(photoView, 1);
                 photoView.load().then(function(){
                   console.log(layerID + " added to map successfully.");
                 });
@@ -428,8 +430,7 @@ export default class App extends Component {
           position: "bottom-left"
         });
 
-        map.reorder(footprintsLayer, 4); // Move Generalized Footprint to top of Layer List
-        map.reorder(envelopesLayer, 3);
+        map.reorder(footprintsLayer, 0); // Move Generalized Footprint to top of Layer List
       })
 
       .catch((err) => {
