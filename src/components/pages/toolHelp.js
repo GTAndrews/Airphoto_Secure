@@ -7,6 +7,7 @@ const ToolHelp = ({ children }) => (
     <ul>
         <li>Zoom Controls</li>
         <li>Quick Search</li>
+        <li>Quick Filter (by Decade)</li>
         <li>Basemap Toggle</li>
         <li>Layer List</li>
         <li>Feature Popup<ul>
@@ -22,6 +23,8 @@ const ToolHelp = ({ children }) => (
     <p>Searching for a location or a specific Photo is achieved through the Search tool at the top-right corner of the map. The down arrow will show options for selecting what your search is for, options are: ArcGIS World Geocoding Service, Roll Search and Photo Search. The ArcGIS World Geocoding Service searches any location on Earth and will drop a dark dot in the selected location. The Roll and Photo searches will search the index of Trent's Airphotos.</p>
     <p><i>Roll Example</i>=&#62; <i>NAPL</i>: A18757 || <i>MNRF</i>: R001-4427</p>
     <p><i>Photo Example</i>=&#62; <i>NAPL</i>: A01054-030 || <i>MNRF</i>: R073-4425-033</p>
+    <b>Quick Filter (by Decade):</b>
+    <p>When expanded, the Quick Filtler will display a list of all available decades. When a decade is selected the map layers will only display photo locations from that decade. To clear the filter and show all photo locations, simply select the top "Filter by Decade" option.</p>
     <b>Basemap Toggle:</b>
     <p>The basemap can be switched from the default Topographic map to the Esri Imagery Service basemap by clicking the Basemap Toggle at the bottom-left of the map.</p>
     <b>Layer List:</b>

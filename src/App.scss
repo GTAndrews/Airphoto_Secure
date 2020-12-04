@@ -52,40 +52,6 @@ header:hover{
   height: calc(100% - #{$header__height});
 }
 
-// query div
-#optionsDiv {
-  background-color: dimgray;
-  color: white;
-  padding: 10px;
-  width: 350px;
-}
-
-#year-filter {
-  width: 100%;
-  visibility: hidden;
-}
-
-.year-item {
-  width: 100%;
-  padding: 12px;
-  text-align: center;
-  vertical-align: baseline;
-  cursor: pointer;
-  height: 40px;
-}
-
-.year-item:focus {
-  background-color: dimgrey;
-}
-
-.year-item:hover {
-  background-color: dimgrey;
-}
-
-.year-item:visited {
-  background-color: dimgrey;
-}
-
 .grecaptcha-badge { 
   visibility: hidden;
 }

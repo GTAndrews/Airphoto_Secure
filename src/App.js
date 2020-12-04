@@ -24,6 +24,7 @@ export default class App extends Component {
   componentDidMount = () => {
     //loadReCaptcha('6Lcg4s4ZAAAAAB-TWHuox2PbiRAdV-ynnZLXyq4l') // localhost dev reCAPTCHA
     loadReCaptcha('6LfAU7wUAAAAAHvGI0EUUruTd5AXr282zg6EXZdS') // MaDGIC reCAPTCHA
+    // Set up ArcGIS Javascript Application components
     loadModules([
       'esri/Map', 
       'esri/views/MapView',
@@ -39,7 +40,9 @@ export default class App extends Component {
       'esri/widgets/LayerList',
       'esri/widgets/Expand'])
       .then(([Map, MapView, Home, BasemapToggle, FeatureLayer, ImageryLayer, TextContent, AttachmentsContent, QueryTask, Query, Search, LayerList, Expand]) => {
+        /* For original filter by decade
         let photoLayerView;
+        let footprintLayerView; */
 
         const map = new Map({
           basemap: 'topo-vector',
@@ -62,6 +65,7 @@ export default class App extends Component {
           }
         });
 
+        // Generalized Envelopes to guide users from Large Scale views
         const envelopesLayer = new FeatureLayer({
           url:
             "http://madgic.trentu.ca/arcgis/rest/services/airphoto2020/Airphoto2020/MapServer/3",
@@ -77,6 +81,7 @@ export default class App extends Component {
           console.log("Envelopes loaded successfully.");
         });
 
+        // Refined Photo Footprints to zoom in on photo locations
         const footprintsLayer = new FeatureLayer({
           url:
             "http://madgic.trentu.ca/arcgis/rest/services/airphoto2020/Airphoto2020/MapServer/2",
@@ -92,6 +97,7 @@ export default class App extends Component {
           console.log("Footprints loaded successfully.");
         });
 
+        // Flight lines to illustrate directionality of subsequent photos
         const flightLineLayer = new FeatureLayer({
           url:
           "http://madgic.trentu.ca/arcgis/rest/services/airphoto2020/Airphoto2020/MapServer/1",
@@ -107,12 +113,7 @@ export default class App extends Component {
           console.log("Flightlines loaded successfully.");
         });
 
-        // Set custom popup content for Photo Layer
-        const textElement = new TextContent();
-        const photoContent = 
-          textElement.text = 
-            "<table class='esri-widget__table'><tr><th>Roll</th><td>{ROLL}</td></tr><tr><th>Photo</th><td>{PHOTO}</td></tr><tr><th>Capture Date</th><td>{NAPL_DATE}</td></tr><tr><th>Line Number</th><td>{LINE_NO}</td></tr><tr><th>Collection</th><td>{Collection}</td></tr><tr><th>Centre (<i>WGS 1984</i>)</th><td>{CNTR_LAT}, {CNTR_LON}</td></tr><tr><th>Altitude (<i>ft</i>)</th><td>{ALTITUDE}</td></tr><tr><th>Scale (<i>relative</i>)</th><td>{SCALE}</td></tr><tr><th>Camera</th><td>{CAMERA}</td></tr><tr><th>Lens</th><td>{LENS_NAME}</td></tr><tr><th>Focal Length (<i>mm</i>)</th><td>{FOCAL_LEN}</td></tr><tr><th>Film Type</th><td>{FILM_TYPE}</td></tr><tr><th>Film size (<i>mm</i>)</th><td>{FILM_SIZE}</td></tr><tr><th>Photo Dimensions (<i>in</i>)</th><td>{WIDTH} x {HEIGHT}</td></tr><tr><th>Box</th><td>{BOX}</td></tr><tr><th>File Name</th><td>{PHOTOID}</td></tr><tr style='display:none;'><th>Photo Year</th><td>{Year_}</td></tr><tr style='display:none;'><th>Raster ID</th><td>{RASTERID}</td></tr><tr style='display:none;'><th>Download URL</th><td>{DownloadURL}</td></tr></table>"
-
+        // Set up Clustering rules
         const clusterConfig = {
           type: "cluster",
           clusterRadius: "10px",
@@ -140,6 +141,7 @@ export default class App extends Component {
           ]
         };
 
+        // Set up Photo Point Clustering layer
         const photoCluster = new FeatureLayer({
           url: "https://madgic.trentu.ca/arcgis/rest/services/airphoto2020/Airphoto2020/MapServer/0",
           outFields: ["*"],
@@ -152,18 +154,25 @@ export default class App extends Component {
           popupEnabled: false
         });
 
-        map.add(photoCluster);
+        map.add(photoCluster); // Add Photo Cluster numbering to the map view
         photoCluster.load().then(function(){
           console.log("Photo Clusters loaded successfully.");
         });
 
+        // Set custom popup content for Photo Layer
+        const textElement = new TextContent();
+        const photoContent = 
+          textElement.text = 
+            "<table class='esri-widget__table'><tr><th>Roll</th><td>{ROLL}</td></tr><tr><th>Photo</th><td>{PHOTO}</td></tr><tr><th>Capture Date</th><td>{NAPL_DATE}</td></tr><tr><th>Line Number</th><td>{LINE_NO}</td></tr><tr><th>Collection</th><td>{Collection}</td></tr><tr><th>Centre (<i>WGS 1984</i>)</th><td>{CNTR_LAT}, {CNTR_LON}</td></tr><tr><th>Altitude (<i>ft</i>)</th><td>{ALTITUDE}</td></tr><tr><th>Scale (<i>relative</i>)</th><td>{SCALE}</td></tr><tr><th>Camera</th><td>{CAMERA}</td></tr><tr><th>Lens</th><td>{LENS_NAME}</td></tr><tr><th>Focal Length (<i>mm</i>)</th><td>{FOCAL_LEN}</td></tr><tr><th>Film Type</th><td>{FILM_TYPE}</td></tr><tr><th>Film size (<i>mm</i>)</th><td>{FILM_SIZE}</td></tr><tr><th>Photo Dimensions (<i>in</i>)</th><td>{WIDTH} x {HEIGHT}</td></tr><tr><th>Box</th><td>{BOX}</td></tr><tr><th>File Name</th><td>{PHOTOID}</td></tr><tr style='display:none;'><th>Photo Year</th><td>{Year_}</td></tr><tr style='display:none;'><th>Raster ID</th><td>{RASTERID}</td></tr><tr style='display:none;'><th>Download URL</th><td>{DownloadURL}</td></tr></table>"
+
+        // Set up Photo Points layer
         const photoLayer = new FeatureLayer({
           url: "https://madgic.trentu.ca/arcgis/rest/services/airphoto2020/Airphoto2020/MapServer/0",
           outFields: ["*"],
           opacity: 0.75,
           popupTemplate:{
             title: "Photo <b>{ROLL}-{PHOTO}</b> caputred on <b>{NAPL_DATE}</b>",
-            actions: [
+            actions: [ // Set Actions to appear in Photo Popups
               {
                 id: "view-photo",
                 className: "esri-icon-visible",
@@ -214,7 +223,7 @@ export default class App extends Component {
                 fieldName: "HEIGHT"
               },{
                 fieldName: "BOX"
-              },{ // custom format to hide this
+              },{ // custom format to hide these
                 fieldName: "DownloadURL"
               },{
                 fieldName: "Year_"
@@ -230,17 +239,19 @@ export default class App extends Component {
           title: "Airphoto Points"
         });
 
-        map.add(photoLayer);
+        map.add(photoLayer); // Add Photo Points layer to the map view
         photoLayer.load().then(function(){
           console.log("Photos loaded successfully.");
         });
 
+        // Function to handle enable or disable Download Button depending on the DownloadURL field
         view.when(function () {
           // Watch for when features are selected
           view.popup.watch("selectedFeature", function (graphic) {
             if (graphic) {
               // Set the action's visible property to true if the 'DownloadURL' field value is not null, otherwise set it to false
               var graphicTemplate = graphic.getEffectivePopupTemplate();
+              // Only show popups for the Photo Points
               if (graphicTemplate.title === "Photo <b>{ROLL}-{PHOTO}</b> caputred on <b>{NAPL_DATE}</b>") {
                 console.log(graphic.attributes.DownloadURL)
                 graphicTemplate.actions.items[1].disabled = graphic.attributes
@@ -252,6 +263,7 @@ export default class App extends Component {
           });
         });
         
+        // Function to handle Popup Actions for Viewing and Downloading photos
         view.when(function () {
           var popup = view.popup;
           popup.viewModel.on("trigger-action", function (event) {
@@ -264,11 +276,15 @@ export default class App extends Component {
               var info = attributes.DownloadURL;
               // Make sure the 'Download URL' field value is not null
               if (info) {
+                // *** Check if the year is under copyright and redirect to secure app if it is ***
+                // Remove this check for Secure App
+
                 // Open up a new browser using the Download URL value
                 window.open(info.trim());
                 console.log(photoID + " successfully downloaded.")
                 // Add error Handling
               }
+            // View operation working with URL calls for each photo from PHOTOID and Year_ attributes
             } else if (event.action.id === "view-photo") {
               // Collect relevant attributes to populate the Service URL for the specific photo
               var layerID = attributes.PHOTOID;
@@ -287,7 +303,7 @@ export default class App extends Component {
                     definitionExpression: defExp,
                     title: layerID
                 });
-                map.add(photoView, 0);
+                map.add(photoView, 0); // Add photos with unique names derived from PHOTOID attribute
                 map.reorder(photoView, 1);
                 photoView.load().then(function(){
                   console.log(layerID + " added to map successfully.");
@@ -297,6 +313,7 @@ export default class App extends Component {
           });
         });
 
+        // *** NOT FUNCTIONAL *** Add functionality to change Photo Opacity and Remove photos from view
         function defineActions(event) {
           var item = event.item;
           if (item.title === "Airphoto Points") {
@@ -350,37 +367,54 @@ export default class App extends Component {
           view.ui.add(layerList, "bottom-right");
         });
 
-        //const yearNode = document.querySelectorAll('.year-item');
-        const yearElement = document.getElementById("year-filter");
+        // Set up Decade Quick Filter
+        var sqlExpressions = ["Filter by Decade", "1920s", "1930s", "1940s", "1950s", "1960s", "1970s", "1980s", "1990s"];
 
-        yearElement.addEventListener("click", filterByYear);
+        var selectFilter = document.createElement("select");
+        selectFilter.setAttribute("class", "esri-widget esri-select");
+        selectFilter.setAttribute("style", "width: 150px; font-family: Arial; font-size: 1em;");
 
-        function filterByYear(event) {
-          const selectedYear = event.target.getAttribute("data-year");
-          photoLayerView.filter = {
-            where: "Year_ like '" + selectedYear + "%'"
-          };
-          console.log(photoLayerView.filter.where)
-        }
+        sqlExpressions.forEach(function(sql){
+          var option = document.createElement("option");
+          if (sql === "Filter by Decade") {
+            option.value = "YEAR_INT like '19%'";
+          } else {
+            var decade = sql.slice(0,3);
+            option.value = "YEAR_INT like '" + decade + "%'";
+          }
+          option.innerHTML = sql;
+          selectFilter.appendChild(option);
+        });
 
-        view.whenLayerView(photoLayer).then(function (layerView) {
-          photoLayerView = layerView;
-          yearElement.style.visibility = "visible";
-          const yearExpand = new Expand({
-            view: view,
-            expandTooltip: "Filter by Decade",
-            collapseTooltip: "Clear Filter",
-            content: yearElement,
-            expandIconClass: "esri-icon-filter",
-            group: "top-left"
+        // Define which layers will be modified by the Quick Filtering
+        function setFeatureLayerViewFilter(expression) {
+          view.whenLayerView(photoLayer).then(function(featureLayerView){
+            featureLayerView.filter = {
+              where: expression
+            };
           });
-          yearExpand.watch("expanded", function () {
-            if (!yearExpand.expanded) {
-              photoLayerView.filter = null;
-            }
+          view.whenLayerView(photoCluster).then(function(featureLayerView){
+            featureLayerView.filter = {
+              where: expression
+            };
           });
-          view.ui.add(yearExpand, "top-left");
-        })
+          view.whenLayerView(flightLineLayer).then(function(featureLayerView){
+            featureLayerView.filter = {
+              where: expression
+            };
+          });
+          view.whenLayerView(footprintsLayer).then(function(featureLayerView){
+            featureLayerView.filter = {
+              where: expression
+            };
+          });
+        };
+
+        // Handle changed to the view when Quick Filter is applied
+        selectFilter.addEventListener('change', function(event) {
+          setFeatureLayerViewFilter(event.target.value);
+          console.log(event.target.value);
+        });
 
         // Standard Home Widget
         const homeWidget = new Home({
@@ -391,6 +425,7 @@ export default class App extends Component {
           position: "top-left"
         });
 
+        // Quick Search functions for Roll and Photo Searches
         const searchWidget = new Search ({
           view: view,
           allPlaceholder: "Search Location or Photo",
@@ -420,6 +455,9 @@ export default class App extends Component {
           position: "top-right"
         });
 
+        // Add Filter to view
+        view.ui.add(selectFilter, "top-right");
+
         // Standard Basemap Toggle
         const toggle = new BasemapToggle ({
           view: view,
@@ -430,7 +468,8 @@ export default class App extends Component {
           position: "bottom-left"
         });
 
-        map.reorder(footprintsLayer, 0); // Move Generalized Footprint to top of Layer List
+        // Move Generalized Footprint to top of Layer List
+        map.reorder(footprintsLayer, 0); 
       })
 
       .catch((err) => {
@@ -449,22 +488,13 @@ export default class App extends Component {
     return (
       <div className='App'>
         <Header />
-        <div id='year-filter' className='esri-widget'>
-          <div className='year-item visible-year' data-year='192'>1920s</div>
-          <div className='year-item visible-year' data-year='193'>1930s</div>
-          <div className='year-item visible-year' data-year='194'>1940s</div>
-          <div className='year-item visible-year' data-year='195'>1950s</div>
-          <div className='year-item visible-year' data-year='196'>1960s</div>
-          <div className='year-item visible-year' data-year='197'>1970s</div>
-          <div className='year-item visible-year' data-year='198'>1980s</div>
-          <div className='year-item visible-year' data-year='199'>1990s</div>
-        </div>
         <div id='mapContainer' className='esri-widget'/>
         <Cookies />
       </div>
     );
   }
 }
+
 
 // logo: <img src={logo} alt="Trent University Library & Archives" /> 
 
