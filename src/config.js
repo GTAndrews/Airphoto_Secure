@@ -1,1 +1,1 @@
-export const esriVersion = '4.17';
+export const esriVersion = '4.18';
