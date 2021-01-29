@@ -68,7 +68,7 @@ export default class App extends Component {
         // Generalized Envelopes to guide users from Large Scale views
         const envelopesLayer = new FeatureLayer({
           url:
-            "http://madgic.trentu.ca/arcgis/rest/services/airphoto2020/Airphoto2020/MapServer/3",
+            "http://madgic.trentu.ca/arcgis/rest/services/airphoto2020/Airphoto2020/MapServer/4",
             outFields: ["*"],
             title: "Generalized Footprint",
             opacity: 0.65,
@@ -84,7 +84,7 @@ export default class App extends Component {
         // Refined Photo Footprints to zoom in on photo locations
         const footprintsLayer = new FeatureLayer({
           url:
-            "http://madgic.trentu.ca/arcgis/rest/services/airphoto2020/Airphoto2020/MapServer/2",
+            "http://madgic.trentu.ca/arcgis/rest/services/airphoto2020/Airphoto2020/MapServer/3",
             outFields: ["*"],
             title: "Refined Footprint",
             opacity: 0.65,
@@ -100,7 +100,7 @@ export default class App extends Component {
         // Flight lines to illustrate directionality of subsequent photos
         const flightLineLayer = new FeatureLayer({
           url:
-          "http://madgic.trentu.ca/arcgis/rest/services/airphoto2020/Airphoto2020/MapServer/1",
+          "http://madgic.trentu.ca/arcgis/rest/services/airphoto2020/Airphoto2020/MapServer/2",
           outFields: ["YEAR", "ROLL", "PROVINCE"],
           opacity: 0.75,
           popupTemplate: rollTemplate,
@@ -143,7 +143,7 @@ export default class App extends Component {
 
         // Set up Photo Point Clustering layer
         const photoCluster = new FeatureLayer({
-          url: "https://madgic.trentu.ca/arcgis/rest/services/airphoto2020/Airphoto2020/MapServer/0",
+          url: "https://madgic.trentu.ca/arcgis/rest/services/airphoto2020/Airphoto2020/MapServer/1",
           outFields: ["*"],
           opacity: 0,
           minScale: 60000,
@@ -159,11 +159,11 @@ export default class App extends Component {
           console.log("Photo Clusters loaded successfully.");
         });
 
-        // Set custom popup content for Photo Layer
+        // Set custom, conditional popup content for Photo Layer
         const textElement = new TextContent();
-        const photoContent = 
+        const popupContent = 
           textElement.text = 
-            "<table class='esri-widget__table'><tr><th>Roll</th><td>{ROLL}</td></tr><tr><th>Photo</th><td>{PHOTO}</td></tr><tr><th>Capture Date</th><td>{NAPL_DATE}</td></tr><tr><th>Line Number</th><td>{LINE_NO}</td></tr><tr><th>Collection</th><td>{Collection}</td></tr><tr><th>Centre (<i>WGS 1984</i>)</th><td>{CNTR_LAT}, {CNTR_LON}</td></tr><tr><th>Altitude (<i>ft</i>)</th><td>{ALTITUDE}</td></tr><tr><th>Scale (<i>relative</i>)</th><td>{SCALE}</td></tr><tr><th>Camera</th><td>{CAMERA}</td></tr><tr><th>Lens</th><td>{LENS_NAME}</td></tr><tr><th>Focal Length (<i>mm</i>)</th><td>{FOCAL_LEN}</td></tr><tr><th>Film Type</th><td>{FILM_TYPE}</td></tr><tr><th>Film size (<i>mm</i>)</th><td>{FILM_SIZE}</td></tr><tr><th>Photo Dimensions (<i>in</i>)</th><td>{WIDTH} x {HEIGHT}</td></tr><tr><th>Box</th><td>{BOX}</td></tr><tr><th>File Name</th><td>{PHOTOID}</td></tr><tr style='display:none;'><th>Photo Year</th><td>{Year_}</td></tr><tr style='display:none;'><th>Raster ID</th><td>{RASTERID}</td></tr><tr style='display:none;'><th>Download URL</th><td>{DownloadURL}</td></tr></table>"
+            "<table class='esri-widget__table'><tr><th>Roll</th><td>{ROLL}</td></tr><tr><th>Photo</th><td>{PHOTO}</td></tr><tr><th>Capture Year</th><td>{Year_}</td></tr><tr><th>Capture Date</th><td>{NAPL_DATE}</td></tr><tr><th>Line Number</th><td>{LINE_NO}</td></tr><tr><th>Collection</th><td>{Collection}</td></tr><tr><th>Centre (<i>WGS 1984</i>)</th><td>{CNTR_LAT}, {CNTR_LON}</td></tr><tr><th>Altitude (<i>ft</i>)</th><td>{ALTITUDE}</td></tr><tr><th>Scale (<i>relative</i>)</th><td>{SCALE}</td></tr><tr><th>Camera</th><td>{CAMERA}</td></tr><tr><th>Lens</th><td>{LENS_NAME}</td></tr><tr><th>Focal Length (<i>mm</i>)</th><td>{FOCAL_LEN}</td></tr><tr><th>Film Type</th><td>{FILM_TYPE}</td></tr><tr><th>Film size (<i>mm</i>)</th><td>{FILM_SIZE}</td></tr><tr><th>Photo Dimensions (<i>in</i>)</th><td>{WIDTH} x {HEIGHT}</td></tr><tr><th>Box</th><td>{BOX}</td></tr><tr><th>File Name</th><td>{PHOTOID}</td></tr><tr style='display:none;'><th>Photo Year</th><td>{Year_}</td></tr><tr style='display:none;'><th>Raster ID</th><td>{RASTERID}</td></tr><tr style='display:none;'><th>Download URL</th><td>{DownloadURL}</td></tr></table>"
 
         // Set up Photo Points layer
         const photoLayer = new FeatureLayer({
@@ -171,7 +171,7 @@ export default class App extends Component {
           outFields: ["*"],
           opacity: 0.75,
           popupTemplate:{
-            title: "Photo <b>{ROLL}-{PHOTO}</b> caputred on <b>{NAPL_DATE}</b>",
+            title: "Photo <b>{LABEL}</b> captured in <b>{Year_}</b>",
             actions: [ // Set Actions to appear in Photo Popups
               {
                 id: "view-photo",
@@ -183,7 +183,7 @@ export default class App extends Component {
                 title: "Download"
               }
             ],
-            content: photoContent,
+            content: popupContent,
             fieldInfos: [
               {
                 fieldName: "ROLL"
@@ -230,6 +230,8 @@ export default class App extends Component {
               },{
                 fieldName: "RASTERID"
               },{
+                fieldName: "LABEL"
+              },{
                 fieldName: "PHOTOID"
               }
             ]
@@ -252,7 +254,7 @@ export default class App extends Component {
               // Set the action's visible property to true if the 'DownloadURL' field value is not null, otherwise set it to false
               var graphicTemplate = graphic.getEffectivePopupTemplate();
               // Only show popups for the Photo Points
-              if (graphicTemplate.title === "Photo <b>{ROLL}-{PHOTO}</b> caputred on <b>{NAPL_DATE}</b>") {
+              if (graphicTemplate.title === "Photo <b>{LABEL}</b> captured in <b>{Year_}</b>") {
                 console.log(graphic.attributes.DownloadURL)
                 graphicTemplate.actions.items[1].disabled = graphic.attributes
                 .DownloadURL
@@ -288,15 +290,24 @@ export default class App extends Component {
             } else if (event.action.id === "view-photo") {
               // Collect relevant attributes to populate the Service URL for the specific photo
               var layerID = attributes.PHOTOID;
+              var Collection = attributes.Collection;
               var yearStr = attributes.Year_;
               var year = parseInt(yearStr);
+              var serviceURL = "https://madgic.trentu.ca/arcgis/rest/services/airphoto/y"
+              var naplService = "_Ref/ImageServer";
+              var mnrfService = "MNR_Ref/ImageServer";
               console.log(year);
-              var serviceURL = "https://madgic.trentu.ca/arcgis/rest/services/airphoto/y" + yearStr + "_Ref/ImageServer";
+              if (Collection === "NAPL") {
+                serviceURL = serviceURL + yearStr + naplService;
+              } else if (Collection === "MNRF") {
+                serviceURL = serviceURL + yearStr + mnrfService;
+              };
               var defExp = "OBJECTID = " + String(photoID);
-              if (year > 1970) {
+              if (year > 1971) {
                 // Insert Error or disable View button
                 console.log("Viewing is not active for this photo.")
               } else {
+                console.log(serviceURL)
                 const photoView = new ImageryLayer({
                   url:
                     serviceURL,
