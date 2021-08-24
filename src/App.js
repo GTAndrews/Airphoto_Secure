@@ -10,7 +10,7 @@ import { rollTemplate } from 'components/popup';
 
 import './App.scss';
 
-// configure esri-loader to use version 4.16 from the ArcGIS CDN
+// configure esri-loader to use version 4.20 from the ArcGIS CDN
 // NOTE: make sure this is called once before any calls to loadModules()
 setDefaultOptions({
   version: esriVersion,
@@ -33,13 +33,14 @@ export default class App extends Component {
       'esri/layers/FeatureLayer',
       'esri/layers/ImageryLayer',
       'esri/popup/content/TextContent',
+      'esri/rest/geoprocessor',
       'esri/popup/content/AttachmentsContent',
       'esri/tasks/QueryTask',
       'esri/tasks/support/Query',
       'esri/widgets/Search',
       'esri/widgets/LayerList',
       'esri/widgets/Expand'])
-      .then(([Map, MapView, Home, BasemapToggle, FeatureLayer, ImageryLayer, TextContent, AttachmentsContent, QueryTask, Query, Search, LayerList, Expand]) => {
+      .then(([Map, MapView, Home, BasemapToggle, FeatureLayer, ImageryLayer, TextContent, geoprocessor, AttachmentsContent, QueryTask, Query, Search, LayerList, Expand]) => {
         /* For original filter by decade
         let photoLayerView;
         let footprintLayerView; */
@@ -101,7 +102,7 @@ export default class App extends Component {
         const flightLineLayer = new FeatureLayer({
           url:
           "http://madgic.trentu.ca/arcgis/rest/services/airphoto2020/Airphoto2020/MapServer/2",
-          outFields: ["YEAR", "ROLL", "PROVINCE"],
+          outFields: ["Collection", "YEAR", "ROLL", "PROVINCE"],
           opacity: 0.75,
           popupTemplate: rollTemplate,
           minScale: 1200000,
@@ -163,7 +164,7 @@ export default class App extends Component {
         const textElement = new TextContent();
         const popupContent = 
           textElement.text = 
-            "<table class='esri-widget__table'><tr><th>Roll</th><td>{ROLL}</td></tr><tr><th>Photo</th><td>{PHOTO}</td></tr><tr><th>Capture Year</th><td>{Year_}</td></tr><tr><th>Capture Date</th><td>{NAPL_DATE}</td></tr><tr><th>Line Number</th><td>{LINE_NO}</td></tr><tr><th>Collection</th><td>{Collection}</td></tr><tr><th>Centre (<i>WGS 1984</i>)</th><td>{CNTR_LAT}, {CNTR_LON}</td></tr><tr><th>Altitude (<i>ft</i>)</th><td>{ALTITUDE}</td></tr><tr><th>Scale (<i>relative</i>)</th><td>{SCALE}</td></tr><tr><th>Camera</th><td>{CAMERA}</td></tr><tr><th>Lens</th><td>{LENS_NAME}</td></tr><tr><th>Focal Length (<i>mm</i>)</th><td>{FOCAL_LEN}</td></tr><tr><th>Film Type</th><td>{FILM_TYPE}</td></tr><tr><th>Film size (<i>mm</i>)</th><td>{FILM_SIZE}</td></tr><tr><th>Photo Dimensions (<i>in</i>)</th><td>{WIDTH} x {HEIGHT}</td></tr><tr><th>Box</th><td>{BOX}</td></tr><tr><th>File Name</th><td>{PHOTOID}</td></tr><tr style='display:none;'><th>Photo Year</th><td>{Year_}</td></tr><tr style='display:none;'><th>Raster ID</th><td>{RASTERID}</td></tr><tr style='display:none;'><th>Download URL</th><td>{DownloadURL}</td></tr></table>"
+            "<table class='esri-widget__table'><tr><th>Collection</th><td>{Collection}</td></tr><tr><th>Roll</th><td>{ROLL}</td></tr><tr><th>Photo</th><td>{PHOTO}</td></tr><tr><th>Capture Year</th><td>{Year_}</td></tr><tr><th>Capture Date</th><td>{NAPL_DATE}</td></tr><tr><th>Line Number</th><td>{LINE_NO}</td></tr><tr><th>Centre (<i>WGS 1984</i>)</th><td>{CNTR_LAT}, {CNTR_LON}</td></tr><tr><th>Altitude (<i>ft</i>)</th><td>{ALTITUDE}</td></tr><tr><th>Scale (<i>relative</i>)</th><td>{SCALE}</td></tr><tr><th>Camera</th><td>{CAMERA}</td></tr><tr><th>Lens</th><td>{LENS_NAME}</td></tr><tr><th>Focal Length (<i>mm</i>)</th><td>{FOCAL_LEN}</td></tr><tr><th>Film Type</th><td>{FILM_TYPE}</td></tr><tr><th>Film size (<i>mm</i>)</th><td>{FILM_SIZE}</td></tr><tr><th>Photo Dimensions (<i>in</i>)</th><td>{WIDTH} x {HEIGHT}</td></tr><tr><th>Box</th><td>{BOX}</td></tr><tr><th>File Name</th><td>{PHOTOID}</td></tr><tr style='display:none;'><th>Photo Year</th><td>{Year_}</td></tr><tr style='display:none;'><th>Raster ID</th><td>{RASTERID}</td></tr><tr style='display:none;'><th>Download URL</th><td>{DownloadURL}</td></tr></table>"
 
         // Set up Photo Points layer
         const photoLayer = new FeatureLayer({
@@ -241,6 +242,9 @@ export default class App extends Component {
           title: "Airphoto Points"
         });
 
+        // Set up Geoprocessing tool for downloads
+        const gpUrl = "https://madgic.trentu.ca/arcgis/rest/services/airphoto2020/DownloadAirphotoArcMap/GPServer/Download%20Airphoto%20ArcMap";
+
         map.add(photoLayer); // Add Photo Points layer to the map view
         photoLayer.load().then(function(){
           console.log("Photos loaded successfully.");
@@ -271,32 +275,59 @@ export default class App extends Component {
           popup.viewModel.on("trigger-action", function (event) {
             // Attributes used for both Viewing and Downloading photos
             var attributes = popup.viewModel.selectedFeature.attributes;
-            var photoID = attributes.RASTERID;
+            var photoID = attributes.RASTERID;  // Raster ID number from Imagery Service
+            var photoName = attributes.PHOTOID;  // Photo name including ".tif"
+            var yearStr = attributes.Year_;  // Year in a String format
+            var year = parseInt(yearStr);
+            var Collection = attributes.Collection;  // Either NAPL or MNRF
             // Download photo operation to hit the Download URL
             if (event.action.id === "download-photo") {
               // Get the 'Download URL' field attribute
-              var info = attributes.DownloadURL;
+              var info = attributes.DownloadURL;  // *** Convert this field to a binary ***
               // Make sure the 'Download URL' field value is not null
               if (info) {
                 // *** Check if the year is under copyright and redirect to secure app if it is ***
                 // Remove this check for Secure App
+                if (year > 1971) {
+                  // *** Get a Modal popup for messages going to display these warnings ***
+                  console.log("Download not active on Public Application. Log In to download...");
+                } else {
+                  var params = {
+                    Photo_Name: photoName,
+                    Year: yearStr,
+                    Collection: Collection
+                  };
+                  console.log(params)
+                  // Submit Job for Geoprocessing
+                  geoprocessor.submitJob(gpUrl, params).then((jobInfo) =>{
+                    console.log("Running job: " + jobInfo.jobId);
 
-                // Open up a new browser using the Download URL value
-                window.open(info.trim());
-                console.log(photoID + " successfully downloaded.")
-                // Add error Handling
+                    const options = {
+                      interval: 1000,
+                      statusCallback: (j) => {
+                        console.log("Job Status: " + j.jobStatus);
+                      }
+                    };
+
+                    jobInfo.waitForJobCompletion(options).then(() => {
+                      jobInfo.fetchResultData("Deliverable").then((result) => {
+                        const link = result.value.url;
+                        window.location.assign(link.trim()); // Link should be fine, but trim whitespace just in case...
+                        console.log(photoName + " packaged and delivered!")
+                      });
+                    });
+                  });
+                  // Add error Handling
+                }
               }
             // View operation working with URL calls for each photo from PHOTOID and Year_ attributes
             } else if (event.action.id === "view-photo") {
               // Collect relevant attributes to populate the Service URL for the specific photo
-              var layerID = attributes.PHOTOID;
-              var Collection = attributes.Collection;
-              var yearStr = attributes.Year_;
-              var year = parseInt(yearStr);
               var serviceURL = "https://madgic.trentu.ca/arcgis/rest/services/airphoto/y"
               var naplService = "_Ref/ImageServer";
               var mnrfService = "MNR_Ref/ImageServer";
               console.log(year);
+              console.log(Collection);
               if (Collection === "NAPL") {
                 serviceURL = serviceURL + yearStr + naplService;
               } else if (Collection === "MNRF") {
@@ -312,12 +343,12 @@ export default class App extends Component {
                   url:
                     serviceURL,
                     definitionExpression: defExp,
-                    title: layerID
+                    title: photoName
                 });
                 map.add(photoView, 0); // Add photos with unique names derived from PHOTOID attribute
                 map.reorder(photoView, 1);
                 photoView.load().then(function(){
-                  console.log(layerID + " added to map successfully.");
+                  console.log(photoName + " added to map successfully.");
                 });
               }
             }

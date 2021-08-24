@@ -7,6 +7,9 @@ var rollTemplate ={
             type: "fields",
             fieldInfos: [
                 {
+                    fieldName: "Collection",
+                    label: "Collection"
+                },{
                     fieldName: "ROLL",
                     label: "Roll ID"
                 },{

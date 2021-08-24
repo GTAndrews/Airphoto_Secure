@@ -34,7 +34,7 @@ const Header = (props) => {
             </NavItem>
             <InfoModal></InfoModal>
             <Tools></Tools>
-            <NavbarText>&nbsp;&nbsp; <i>*** Photos from 1927 to 1971 are available to view. Downloads not currently available ***</i></NavbarText>
+            <NavbarText>&nbsp;&nbsp; <i>*** Photos from 1927 to 1971 are available to View and Download ***</i></NavbarText>
           </Nav>
           <NavbarText>Collection (coming soon):&#160;</NavbarText>
           <Collection></Collection>
