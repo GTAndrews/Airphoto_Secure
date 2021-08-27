@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import Modal from 'reactstrap';
 import 'bootstrap/dist/css/bootstrap.css';
 import '@esri/calcite-components';
 import { loadReCaptcha } from 'react-recaptcha-v3';
@@ -6,6 +7,7 @@ import { loadModules, setDefaultOptions } from 'esri-loader';
 import { esriVersion } from 'config';
 import Header from 'components/header';
 import Cookies from 'components/cookies';
+import gear from 'images/gear.gif';
 import { rollTemplate } from 'components/popup';
 
 import './App.scss';
@@ -264,6 +266,8 @@ export default class App extends Component {
                 .DownloadURL
                 ? false
                 : true;
+                // Set default icon for the Download Action
+                graphicTemplate.actions.items[1].className = "esri-icon-download";
               }
             };
           });
@@ -280,9 +284,11 @@ export default class App extends Component {
             var yearStr = attributes.Year_;  // Year in a String format
             var year = parseInt(yearStr);
             var Collection = attributes.Collection;  // Either NAPL or MNRF
-            // Download photo operation to hit the Download URL
+            // --- Download photo operation to hit the Download URL ---
             if (event.action.id === "download-photo") {
-              // Get the 'Download URL' field attribute
+              event.action.className = "None";
+              event.action.image = gear; // Set a "thinking" type icon
+              // DownloadURL is no longer hard coded but this field acts as a flag for the ability to download
               var info = attributes.DownloadURL;  // *** Convert this field to a binary ***
               // Make sure the 'Download URL' field value is not null
               if (info) {
@@ -311,6 +317,8 @@ export default class App extends Component {
 
                     jobInfo.waitForJobCompletion(options).then(() => {
                       jobInfo.fetchResultData("Deliverable").then((result) => {
+                        event.action.image = "None";
+                        event.action.className = "esri-icon-check-mark"; // Upon completion, display a check mark
                         const link = result.value.url;
                         window.location.assign(link.trim()); // Link should be fine, but trim whitespace just in case...
                         console.log(photoName + " packaged and delivered!")
@@ -319,8 +327,10 @@ export default class App extends Component {
                   });
                   // Add error Handling
                 }
+              } else {
+                console.log("Photo not available for download, sorry.")
               }
-            // View operation working with URL calls for each photo from PHOTOID and Year_ attributes
+            // --- View operation working with URL calls for each photo from PHOTOID and Year_ attributes ---
             } else if (event.action.id === "view-photo") {
               // Collect relevant attributes to populate the Service URL for the specific photo
               var serviceURL = "https://madgic.trentu.ca/arcgis/rest/services/airphoto/y"
