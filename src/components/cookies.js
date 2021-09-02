@@ -8,6 +8,8 @@ const Cookies = () => {
                 location="bottom"
                 buttonText="Agree"
                 cookieName="myAwesomeCookieName2"
+                sameSite="None"
+                Secure
                 style={{ background: "#343a40" }}
                 buttonStyle={{ background: "#f8f9fa", color: "#343a40", fontSize: "15px", border: "1" }}
                 expires={150}

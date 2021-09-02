@@ -47,6 +47,9 @@ export default class App extends Component {
         let photoLayerView;
         let footprintLayerView; */
 
+        const d = new Date();
+        const currYear = d.getFullYear();
+
         const map = new Map({
           basemap: 'topo-vector',
         });
@@ -71,7 +74,7 @@ export default class App extends Component {
         // Generalized Envelopes to guide users from Large Scale views
         const envelopesLayer = new FeatureLayer({
           url:
-            "http://madgic.trentu.ca/arcgis/rest/services/airphoto2020/Airphoto2020/MapServer/4",
+            "https://madgic.trentu.ca/arcgis/rest/services/airphoto2020/Airphoto2020/MapServer/4",
             outFields: ["*"],
             title: "Generalized Footprint",
             opacity: 0.65,
@@ -87,7 +90,7 @@ export default class App extends Component {
         // Refined Photo Footprints to zoom in on photo locations
         const footprintsLayer = new FeatureLayer({
           url:
-            "http://madgic.trentu.ca/arcgis/rest/services/airphoto2020/Airphoto2020/MapServer/3",
+            "https://madgic.trentu.ca/arcgis/rest/services/airphoto2020/Airphoto2020/MapServer/3",
             outFields: ["*"],
             title: "Refined Footprint",
             opacity: 0.65,
@@ -103,7 +106,7 @@ export default class App extends Component {
         // Flight lines to illustrate directionality of subsequent photos
         const flightLineLayer = new FeatureLayer({
           url:
-          "http://madgic.trentu.ca/arcgis/rest/services/airphoto2020/Airphoto2020/MapServer/2",
+          "https://madgic.trentu.ca/arcgis/rest/services/airphoto2020/Airphoto2020/MapServer/2",
           outFields: ["Collection", "YEAR", "ROLL", "PROVINCE"],
           opacity: 0.75,
           popupTemplate: rollTemplate,
@@ -229,6 +232,8 @@ export default class App extends Component {
               },{ // custom format to hide these
                 fieldName: "DownloadURL"
               },{
+                fieldName: "ViewURL"
+              },{
                 fieldName: "Year_"
               },{
                 fieldName: "RASTERID"
@@ -252,7 +257,7 @@ export default class App extends Component {
           console.log("Photos loaded successfully.");
         });
 
-        // Function to handle enable or disable Download Button depending on the DownloadURL field
+        // Function to handle enable or disable View and Download Buttons depending on the DownloadURL field
         view.when(function () {
           // Watch for when features are selected
           view.popup.watch("selectedFeature", function (graphic) {
@@ -262,10 +267,10 @@ export default class App extends Component {
               // Only show popups for the Photo Points
               if (graphicTemplate.title === "Photo <b>{LABEL}</b> captured in <b>{Year_}</b>") {
                 console.log(graphic.attributes.DownloadURL)
-                graphicTemplate.actions.items[1].disabled = graphic.attributes
-                .DownloadURL
-                ? false
-                : true;
+                console.log(graphic.attributes.PHOTOID + " viewing status: " + graphic.attributes.ViewURL)
+                // *** THIS WASN'T WORKING FOR SELECTIONS WITH MULTIPLE PHOTOS IN A SINGLE POPUP ***
+                //graphicTemplate.actions.items[0].disabled = graphic.attributes.ViewURL ? false : true;
+                graphicTemplate.actions.items[1].disabled = graphic.attributes.DownloadURL ? false : true;
                 // Set default icon for the Download Action
                 graphicTemplate.actions.items[1].className = "esri-icon-download";
               }
@@ -283,6 +288,8 @@ export default class App extends Component {
             var photoName = attributes.PHOTOID;  // Photo name including ".tif"
             var yearStr = attributes.Year_;  // Year in a String format
             var year = parseInt(yearStr);
+            var yearDiff = currYear - year;
+            console.log("Photo age: " + yearDiff);
             var Collection = attributes.Collection;  // Either NAPL or MNRF
             // --- Download photo operation to hit the Download URL ---
             if (event.action.id === "download-photo") {
@@ -353,7 +360,7 @@ export default class App extends Component {
                   url:
                     serviceURL,
                     definitionExpression: defExp,
-                    title: photoName
+                    title: yearStr + ": " + photoName
                 });
                 map.add(photoView, 0); // Add photos with unique names derived from PHOTOID attribute
                 map.reorder(photoView, 1);
