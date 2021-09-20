@@ -549,7 +549,6 @@ export default class App extends Component {
         // Change view when Colleciton is Selected
         collectionFilter.addEventListener('change', function(event) {
           var inputEx2 = event.target.value;
-          console.log(inputEx2);
           if (!inputEx2) {
             collVal = inputEx2;
             inputEx2 = selectVal;

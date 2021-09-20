@@ -25,6 +25,8 @@ const ToolHelp = ({ children }) => (
     <p><i>Photo Example</i>=&#62; <i>NAPL</i>: A01054-030 || <i>MNRF</i>: R073-4425-033</p>
     <b>Quick Filter (by Decade):</b>
     <p>When expanded, the Quick Filtler will display a list of all available decades. When a decade is selected the map layers will only display photo locations from that decade. To clear the filter and show all photo locations, simply select the top "Filter by Decade" option.</p>
+    <b>Collection Filter:</b>
+    <p>When expanded, the Collection Filtler will display a list of the available Air Photo Collections. When a decade is selected the map layers will only display photo locations from that Collection. To clear the filter and show all photo locations, simply select the top "Collection" option.</p>
     <b>Basemap Toggle:</b>
     <p>The basemap can be switched from the default Topographic map to the Esri Imagery Service basemap by clicking the Basemap Toggle at the bottom-left of the map.</p>
     <b>Layer List:</b>
