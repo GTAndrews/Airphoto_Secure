@@ -36,8 +36,6 @@ const Header = (props) => {
             <Tools></Tools>
             <NavbarText>&nbsp;&nbsp; <i>*** Photos from 1927 to 1971 are available to View and Download ***</i></NavbarText>
           </Nav>
-          <NavbarText>Collection (coming soon):&#160;</NavbarText>
-          <Collection></Collection>
         </Collapse>
       </Navbar>
     </div>
@@ -45,3 +43,7 @@ const Header = (props) => {
 }
 
 export default Header; // Pass the App Header to the App main script
+
+// Removed from header to add into Map Frame:
+// <NavbarText>Collection (coming soon):&#160;</NavbarText>
+// <Collection></Collection>

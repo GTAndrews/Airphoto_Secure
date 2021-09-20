@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, useEffect } from 'react';
 import Modal from 'reactstrap';
 import 'bootstrap/dist/css/bootstrap.css';
 import '@esri/calcite-components';
@@ -28,6 +28,7 @@ export default class App extends Component {
     loadReCaptcha('6LfAU7wUAAAAAHvGI0EUUruTd5AXr282zg6EXZdS') // MaDGIC reCAPTCHA
     // Set up ArcGIS Javascript Application components
     loadModules([
+      'esri/config',
       'esri/Map', 
       'esri/views/MapView',
       'esri/widgets/Home',
@@ -38,14 +39,15 @@ export default class App extends Component {
       'esri/rest/geoprocessor',
       'esri/popup/content/AttachmentsContent',
       'esri/tasks/QueryTask',
-      'esri/tasks/support/Query',
+      'esri/rest/support/Query',
       'esri/widgets/Search',
       'esri/widgets/LayerList',
       'esri/widgets/Expand'])
-      .then(([Map, MapView, Home, BasemapToggle, FeatureLayer, ImageryLayer, TextContent, geoprocessor, AttachmentsContent, QueryTask, Query, Search, LayerList, Expand]) => {
+      .then(([esriConfig, Map, MapView, Home, BasemapToggle, FeatureLayer, ImageryLayer, TextContent, geoprocessor, AttachmentsContent, QueryTask, Query, Search, LayerList, Expand]) => {
         /* For original filter by decade
         let photoLayerView;
         let footprintLayerView; */
+        esriConfig.apiKey = "AAPKb42644aac2934540be2d19f2b115a6b1B-iN07qcT7mU1Vi1CG5ObQmUivOGDb6-catxRv7DTAY0ZqQheIYXw1-q2MPPPzgv"
 
         const d = new Date();
         const currYear = d.getFullYear();
@@ -426,55 +428,6 @@ export default class App extends Component {
           view.ui.add(layerList, "bottom-right");
         });
 
-        // Set up Decade Quick Filter
-        var sqlExpressions = ["Filter by Decade", "1920s", "1930s", "1940s", "1950s", "1960s", "1970s", "1980s", "1990s"];
-
-        var selectFilter = document.createElement("select");
-        selectFilter.setAttribute("class", "esri-widget esri-select");
-        selectFilter.setAttribute("style", "width: 150px; font-family: Arial; font-size: 1em;");
-
-        sqlExpressions.forEach(function(sql){
-          var option = document.createElement("option");
-          if (sql === "Filter by Decade") {
-            option.value = "YEAR_INT like '19%'";
-          } else {
-            var decade = sql.slice(0,3);
-            option.value = "YEAR_INT like '" + decade + "%'";
-          }
-          option.innerHTML = sql;
-          selectFilter.appendChild(option);
-        });
-
-        // Define which layers will be modified by the Quick Filtering
-        function setFeatureLayerViewFilter(expression) {
-          view.whenLayerView(photoLayer).then(function(featureLayerView){
-            featureLayerView.filter = {
-              where: expression
-            };
-          });
-          view.whenLayerView(photoCluster).then(function(featureLayerView){
-            featureLayerView.filter = {
-              where: expression
-            };
-          });
-          view.whenLayerView(flightLineLayer).then(function(featureLayerView){
-            featureLayerView.filter = {
-              where: expression
-            };
-          });
-          view.whenLayerView(footprintsLayer).then(function(featureLayerView){
-            featureLayerView.filter = {
-              where: expression
-            };
-          });
-        };
-
-        // Handle changed to the view when Quick Filter is applied
-        selectFilter.addEventListener('change', function(event) {
-          setFeatureLayerViewFilter(event.target.value);
-          console.log(event.target.value);
-        });
-
         // Standard Home Widget
         const homeWidget = new Home({
           view: view,
@@ -514,8 +467,104 @@ export default class App extends Component {
           position: "top-right"
         });
 
+        // Set up Decade Quick Filter
+        var sqlExpressions = ["Filter by Decade", "1920s", "1930s", "1940s", "1950s", "1960s", "1970s", "1980s", "1990s"];
+
+        var selectFilter = document.createElement("select");
+        selectFilter.setAttribute("class", "esri-widget esri-select");
+        selectFilter.setAttribute("style", "width: 150px; font-family: Arial; font-size: 1em;");
+
+        sqlExpressions.forEach(function(sql){
+          var option = document.createElement("option");
+          if (sql === "Filter by Decade") {
+            option.value = "YEAR_INT like '19%'";
+          } else {
+            var decade = sql.slice(0,3);
+            option.value = "YEAR_INT like '" + decade + "%'";
+          }
+          option.innerHTML = sql;
+          selectFilter.appendChild(option);
+        });
+
+        // Set up Collection Filter
+        var sqlCollection= ["Collection", "NAPL", "MNRF"];
+
+        var collectionFilter = document.createElement("select");
+        collectionFilter.setAttribute("class", "esri-widget esri-select");
+        collectionFilter.setAttribute("style", "width: 150px; font-family: Arial; font-size: 1em;");
+
+        sqlCollection.forEach(function(sql){
+          var option = document.createElement("option");
+          if (sql === "Collection") {
+            option.value = "";
+          } else {
+            option.value = "Collection = '" + sql + "'";
+          }
+          option.innerHTML = sql;
+          collectionFilter.appendChild(option);
+        });
+
+        // Define which layers will be modified by the Quick Filtering
+        function setFeatureLayerViewFilter(expression) {
+          view.whenLayerView(photoLayer).then(function(featureLayerView){
+            featureLayerView.filter = {
+              where: expression
+            };
+          });
+          view.whenLayerView(photoCluster).then(function(featureLayerView){
+            featureLayerView.filter = {
+              where: expression
+            };
+          });
+          view.whenLayerView(flightLineLayer).then(function(featureLayerView){
+            featureLayerView.filter = {
+              where: expression
+            };
+          });
+          view.whenLayerView(footprintsLayer).then(function(featureLayerView){
+            featureLayerView.filter = {
+              where: expression
+            };
+          });
+        };
+
+        // Read in the current values of each filter
+        var selectVal = selectFilter.value;
+        var collVal = collectionFilter.value;
+        // Handle changed to the view when Quick Filter is applied
+        selectFilter.addEventListener('change', function(event) {
+          var inputEx = event.target.value;
+          if (!collVal) {
+            selectVal = inputEx; // Set new value for Year Select
+            collVal = "";
+            console.log("Year Filter: " + selectVal);
+          } else {  // Combine filter variables
+            selectVal = inputEx;
+            inputEx = inputEx + " AND " + collVal;
+            console.log("Combined Filter: " + inputEx);
+          };
+          setFeatureLayerViewFilter(inputEx);
+        });
+
+        // Change view when Colleciton is Selected
+        collectionFilter.addEventListener('change', function(event) {
+          var inputEx2 = event.target.value;
+          console.log(inputEx2);
+          if (!inputEx2) {
+            collVal = inputEx2;
+            inputEx2 = selectVal;
+            console.log("Year Filter: " + selectVal);
+          } else {
+            collVal = inputEx2;
+            inputEx2 = selectVal + " AND " + inputEx2;
+            console.log("Combined Filter: " + inputEx2);
+          };
+          setFeatureLayerViewFilter(inputEx2);
+        });
+
         // Add Filter to view
         view.ui.add(selectFilter, "top-right");
+        view.ui.add(collectionFilter, "top-right");
 
         // Standard Basemap Toggle
         const toggle = new BasemapToggle ({
