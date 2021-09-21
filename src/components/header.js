@@ -1,9 +1,8 @@
 import React, {useState} from 'react';
 import './Button.css';
-import logo from'images/tu_crest.svg';
-import Collection from 'components/collection';
+import logo from'images/TU_Library & Archives logo condensed.svg';
 import InfoModal from 'components/info';
-import Tools from 'components/tools';
+
 import {
     Collapse,
     Navbar,
@@ -11,30 +10,27 @@ import {
     NavbarBrand,
     Nav,
     NavItem,
-    NavLink,
-    NavbarText
+    NavLink
 } from 'reactstrap';
 
 const Header = (props) => {
 
-    const [isOpen, setIsOpen] = useState(false);
-    const toggle = () => setIsOpen(!isOpen); // Toggle for Tools dropdown
+  const [isOpen, setIsOpen] = useState(false);
+  const toggle = () => setIsOpen(!isOpen); // Toggle for Tools dropdown
 
-    return (
-      <div>
-        <Navbar color="dark" dark expand="md">
-          <NavbarBrand href= "/airphoto2020">
-            <img src={logo} alt='Trent University Crest, reload application' height="40"/><b>Airphoto</b>&nbsp;<i>beta</i>
-          </NavbarBrand>
-          <NavbarToggler onClick={toggle} />
+  return (
+    <div>
+      <Navbar color="dark" dark expand="md">
+        <NavbarBrand href= "https://www.trentu.ca/library/frontpage" target='_blank' rel='noopener noreferrer'>
+          <img src={logo} alt='Trent University Crest, reload application' height="55"/>
+        </NavbarBrand>
+        <NavbarToggler onClick={toggle} />
         <Collapse isOpen={isOpen} navbar>
           <Nav className="mr-auto" navbar>
             <NavItem>
-              <NavLink href="https://www.trentu.ca/library/frontpage" alt='Bata Library Homepage' target='_blank' rel='noopener noreferrer'>Bata Library</NavLink>
+              <NavLink href="/airphoto2020" alt='Reload application' style={{fontWeight: "bold", color: "white"}}><h2>Airphoto Viewer</h2></NavLink>
             </NavItem>
             <InfoModal></InfoModal>
-            <Tools></Tools>
-            <NavbarText>&nbsp;&nbsp; <i>*** Photos from 1927 to 1971 are available to View and Download ***</i></NavbarText>
           </Nav>
         </Collapse>
       </Navbar>
@@ -45,5 +41,9 @@ const Header = (props) => {
 export default Header; // Pass the App Header to the App main script
 
 // Removed from header to add into Map Frame:
+// import Tools from 'components/tools';
+// import Collection from 'components/collection';
+// <Tools></Tools>
+// <NavbarText>&nbsp;&nbsp; <i>*** Photos from 1927 to 1971 are available to View and Download ***</i></NavbarText>
 // <NavbarText>Collection (coming soon):&#160;</NavbarText>
 // <Collection></Collection>

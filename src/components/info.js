@@ -22,27 +22,27 @@ const InfoModal = (props) => {
 
   return (
     <Nav className="mr-auto" navbar>
-      <NavLink href='#' onClick={modaltoggle}>App Info</NavLink>
+      <NavLink href='#' onClick={modaltoggle} style={{right: "1%", position: "absolute", top: "50%", transform: "translateY(-50%)"}}><h3>App Info</h3></NavLink>
       <Modal isOpen={modal} toggle={modaltoggle} className={className} size="lg">
-          <ModalHeader toggle={modaltoggle}>Airphoto Application Information</ModalHeader>
-          <ModalBody>
-            <Breadcrumb>
-              {items.map(({ to, label }) => (
-                <Link key={to} to={to}>
-                  {label}
-                </Link>
-              ))}
-            </Breadcrumb>
-            <Router>
-              <Home path='/airphoto2020/' />
-              <ToolHelp path='/airphoto2020/toolHelp' />
-              <Citation path='/airphoto2020/citation' />
-              <Contact path='/airphoto2020/contact' />
-            </Router>
-          </ModalBody>
-          <ModalFooter>
-            <Button color="secondary" onClick={modaltoggle}>Close</Button>
-          </ModalFooter>
+        <ModalHeader toggle={modaltoggle}>Airphoto Application Information</ModalHeader>
+        <ModalBody>
+          <Breadcrumb>
+            {items.map(({ to, label }) => (
+              <Link key={to} to={to}>
+                {label}
+              </Link>
+            ))}
+          </Breadcrumb>
+          <Router>
+            <Home path='/airphoto2020/' />
+            <ToolHelp path='/airphoto2020/toolHelp' />
+            <Citation path='/airphoto2020/citation' />
+            <Contact path='/airphoto2020/contact' />
+          </Router>
+        </ModalBody>
+        <ModalFooter>
+          <Button color="secondary" onClick={modaltoggle}>Close</Button>
+        </ModalFooter>
       </Modal>
     </Nav>
   );
