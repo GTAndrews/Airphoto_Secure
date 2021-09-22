@@ -6,14 +6,14 @@ const ToolHelp = ({ children }) => (
     <p>The following tools are featured in this application:</p>
     <ul>
         <li><a href="#Zoom">Zoom Controls</a></li>
-        <li><a href="Search">Quick Search</a></li>
-        <li><a href="Year">Quick Filter (by Decade)</a></li>
-        <li><a href="Colleciton">Collection Filter</a></li>
-        <li><a href="BM">Basemap Toggle</a></li>
-        <li><a href="Legend">Layer List</a></li>
+        <li><a href="#Search">Quick Search</a></li>
+        <li><a href="#Year">Quick Filter (by Decade)</a></li>
+        <li><a href="#Collection">Collection Filter</a></li>
+        <li><a href="#BM">Basemap Toggle</a></li>
+        <li><a href="#Legend">Layer List</a></li>
         <li><a href="#Popup">Feature Popup</a><ul>
-            <li><a href="View">View Photo</a></li>
-            <li><a href="DL">Download Photo</a></li>
+            <li><a href="#View">View Photo</a></li>
+            <li><a href="#DL">Download Photo</a></li>
             </ul></li>
     </ul>
     <b id="Zoom">Zoom Controls:</b>
