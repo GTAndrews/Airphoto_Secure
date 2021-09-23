@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import './Button.css';
 import logo from'images/TU_Library & Archives logo condensed.svg';
+import MaDGIC_logo from'images/MaDGIC_GlobeIcon_WhiteText.svg';
 import InfoModal from 'components/info';
 
 import {
@@ -27,6 +28,9 @@ const Header = (props) => {
         <NavbarToggler onClick={toggle} />
         <Collapse isOpen={isOpen} navbar>
           <Nav className="mr-auto" navbar>
+            <NavItem>
+              <NavLink href="https://www.trentu.ca/library/madgic" target='_blank' rel='noopener noreferrer' height="55"><img src={MaDGIC_logo} alt='Maps, Data and Government Information Centre' height="55"/></NavLink>
+            </NavItem>
             <NavItem>
               <NavLink href="/airphoto2020" alt='Reload application' style={{fontWeight: "bold", color: "white"}}><h2>Airphoto Viewer</h2></NavLink>
             </NavItem>

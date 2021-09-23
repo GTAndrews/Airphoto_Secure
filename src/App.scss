@@ -35,6 +35,14 @@ header:hover{
   transition: background-color 250ms ease-in-out;
 }
 
+.bg-dark{
+  background-color: #154734 !important;
+}
+
+.navbar-dark .navbar-nav .nav-link {
+  color: rgba(255, 255, 255, 0.85);
+}
+
 .gradient-bg {
   background-image: -webkit-linear-gradient(left,#FEFEFE 50%,#154734);
 }
