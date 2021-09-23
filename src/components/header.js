@@ -1,6 +1,5 @@
 import React, {useState} from 'react';
 import './Button.css';
-import logo from'images/TU_Library & Archives logo condensed.svg';
 import MaDGIC_logo from'images/MaDGIC_GlobeIcon_WhiteText.svg';
 import InfoModal from 'components/info';
 
@@ -42,6 +41,7 @@ const Header = (props) => {
 export default Header; // Pass the App Header to the App main script
 
 // Removed from header to add into Map Frame:
+// import logo from'images/TU_Library & Archives logo condensed.svg';
 // href= "https://www.trentu.ca/library/frontpage" target='_blank' rel='noopener noreferrer'>
 // <img src={logo} alt='Trent University Crest, reload application' height="55"/>
 // <NavItem>

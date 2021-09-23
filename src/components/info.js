@@ -7,7 +7,6 @@ import Citation from 'components/pages/citation';
 import Contact from 'components/pages/contact';
 import Breadcrumb from 'components/Breadcrumb';
 import logo from'images/TU_Library & Archives logo condensed.svg';
-import MaDGIC_logo from'images/MaDGIC_GlobeIcon_WhiteText.svg';
 import NavbarText from 'reactstrap/lib/NavbarText';
 
 
@@ -60,6 +59,7 @@ const InfoModal = (props) => {
 
 export default InfoModal;
 
+// import MaDGIC_logo from'images/MaDGIC_GlobeIcon_WhiteText.svg';
 // https://madgic.trentu.ca/airphoto/files/citing_air_photos.pdf 
 
             /* <p>This application depicts the locations of Trent University's Airphoto collections.<br></br>
