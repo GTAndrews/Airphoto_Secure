@@ -6,6 +6,10 @@ import ToolHelp from 'components/pages/toolHelp';
 import Citation from 'components/pages/citation';
 import Contact from 'components/pages/contact';
 import Breadcrumb from 'components/Breadcrumb';
+import logo from'images/TU_Library & Archives logo condensed.svg';
+import MaDGIC_logo from'images/MaDGIC_GlobeIcon_WhiteText.svg';
+import NavbarText from 'reactstrap/lib/NavbarText';
+
 
 const InfoModal = (props) => {
 
@@ -22,8 +26,12 @@ const InfoModal = (props) => {
 
   return (
     <Nav className="justify-content-end" navbar>
-      <NavLink href='#' onClick={modaltoggle} style={{right: "1%", position: "absolute", top: "50%", transform: "translateY(-50%)"}}>
-        <h3>App Info</h3>
+      <NavLink href='#' onClick={modaltoggle} style={{right: "135pt", position: "absolute", top: "50%", transform: "translateY(-50%)"}}>
+        <h3>App Info &nbsp;</h3>
+      </NavLink>
+      <NavbarText style={{right: "135pt", position: "absolute", top: "50%", transform: "translateY(-50%)"}}><h2>|</h2></NavbarText>
+      <NavLink href= "https://www.trentu.ca/library/frontpage" target='_blank' rel='noopener noreferrer' style={{right: "1%", position: "absolute", top: "50%", transform: "translateY(-50%)"}}>
+        <img src={logo} alt='Trent University Crest, reload application' height="55"/>
       </NavLink>
       <Modal isOpen={modal} toggle={modaltoggle} className={className} size="lg">
         <ModalHeader toggle={modaltoggle}>Airphoto Application Information</ModalHeader>

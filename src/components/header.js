@@ -22,15 +22,12 @@ const Header = (props) => {
   return (
     <div>
       <Navbar color="dark" dark expand="md">
-        <NavbarBrand href= "https://www.trentu.ca/library/frontpage" target='_blank' rel='noopener noreferrer'>
-          <img src={logo} alt='Trent University Crest, reload application' height="55"/>
+        <NavbarBrand href="https://www.trentu.ca/library/madgic" target='_blank' rel='noopener noreferrer'>
+          <img src={MaDGIC_logo} alt='Maps, Data and Government Information Centre' height="65"/>
         </NavbarBrand>
         <NavbarToggler onClick={toggle} />
         <Collapse isOpen={isOpen} navbar>
           <Nav className="mr-auto" navbar>
-            <NavItem>
-              <NavLink href="https://www.trentu.ca/library/madgic" target='_blank' rel='noopener noreferrer' height="55"><img src={MaDGIC_logo} alt='Maps, Data and Government Information Centre' height="55"/></NavLink>
-            </NavItem>
             <NavItem>
               <NavLink href="/airphoto2020" alt='Reload application' style={{fontWeight: "bold", color: "white"}}><h2>Airphoto Viewer</h2></NavLink>
             </NavItem>
@@ -45,6 +42,11 @@ const Header = (props) => {
 export default Header; // Pass the App Header to the App main script
 
 // Removed from header to add into Map Frame:
+// href= "https://www.trentu.ca/library/frontpage" target='_blank' rel='noopener noreferrer'>
+// <img src={logo} alt='Trent University Crest, reload application' height="55"/>
+// <NavItem>
+// <NavLink href="https://www.trentu.ca/library/madgic" target='_blank' rel='noopener noreferrer' height="55"><img src={MaDGIC_logo} alt='Maps, Data and Government Information Centre'/></NavLink>
+// </NavItem>
 // import Tools from 'components/tools';
 // import Collection from 'components/collection';
 // <Tools></Tools>
