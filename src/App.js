@@ -272,7 +272,7 @@ export default class App extends Component {
                 console.log(graphic.attributes.PHOTOID + " viewing status: " + graphic.attributes.ViewURL)
                 // *** THIS WASN'T WORKING FOR SELECTIONS WITH MULTIPLE PHOTOS IN A SINGLE POPUP ***
                 //graphicTemplate.actions.items[0].disabled = graphic.attributes.ViewURL ? false : true;
-                graphicTemplate.actions.items[1].disabled = graphic.attributes.DownloadURL ? false : true;
+                //graphicTemplate.actions.items[1].disabled = graphic.attributes.DownloadURL ? false : true;
                 // Set default icon for the Download Action
                 graphicTemplate.actions.items[1].className = "esri-icon-download";
               }
