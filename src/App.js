@@ -37,20 +37,42 @@ export default class App extends Component {
       'esri/layers/ImageryLayer',
       'esri/popup/content/TextContent',
       'esri/rest/geoprocessor',
-      'esri/popup/content/AttachmentsContent',
       'esri/tasks/QueryTask',
       'esri/rest/support/Query',
       'esri/widgets/Search',
       'esri/widgets/LayerList',
-      'esri/widgets/Expand'])
-      .then(([esriConfig, Map, MapView, Home, BasemapToggle, FeatureLayer, ImageryLayer, TextContent, geoprocessor, AttachmentsContent, QueryTask, Query, Search, LayerList, Expand]) => {
-        /* For original filter by decade
-        let photoLayerView;
-        let footprintLayerView; */
+      'esri/widgets/Expand',
+      'esri/identity/ServerInfo',
+      'esri/identity/IdentityManager',
+      'esri/core/urlUtils'])
+      .then(([esriConfig, Map, MapView, Home, BasemapToggle, FeatureLayer, ImageryLayer, TextContent, geoprocessor, QueryTask, Query, Search, LayerList, Expand, ServerInfo, IdentityManager, urlUtils]) => {
         esriConfig.apiKey = "AAPKb42644aac2934540be2d19f2b115a6b1B-iN07qcT7mU1Vi1CG5ObQmUivOGDb6-catxRv7DTAY0ZqQheIYXw1-q2MPPPzgv"
-
+        esriConfig.request.proxyURL = '/handlers/proxy.ashx';
+        esriConfig.request.forceProxy = true;
+        
         const d = new Date();
         const currYear = d.getFullYear();
+
+        // Generate and register token for secure services
+        let serverInfo = new ServerInfo();
+        serverInfo.server = "https://madgic.trentu.ca";
+        serverInfo.tokenServiceUrl = "https://madgic.trentu.ca/arcgis/tokens/generateToken";
+        serverInfo.hasServer = true;
+        var userInfo = {
+          username : "ap_secure",
+          password : "*9o=5hJ4*!8L0sk",
+          referer : "requestip"
+        };
+        IdentityManager.generateToken(serverInfo, userInfo).then(function(response){
+          response.server = serverInfo.server;
+          response.userId = userInfo.username;
+          IdentityManager.registerToken(response);
+          console.log(response);
+          let token = response.token;
+          console.log(token);
+          return token;
+        });
+        
 
         const map = new Map({
           basemap: 'topo-vector',
@@ -279,7 +301,7 @@ export default class App extends Component {
             };
           });
         });
-        
+
         // Function to handle Popup Actions for Viewing and Downloading photos
         view.when(function () {
           var popup = view.popup;
@@ -287,6 +309,7 @@ export default class App extends Component {
             // Attributes used for both Viewing and Downloading photos
             var attributes = popup.viewModel.selectedFeature.attributes;
             var photoID = attributes.RASTERID;  // Raster ID number from Imagery Service
+            var photoID_Secure = attributes.RasterID_Secure;  //Secure ID for Secure Application Viewing/Downloading
             var photoName = attributes.PHOTOID;  // Photo name including ".tif"
             var yearStr = attributes.Year_;  // Year in a String format
             var year = parseInt(yearStr);
@@ -303,39 +326,34 @@ export default class App extends Component {
               if (info) {
                 // *** Check if the year is under copyright and redirect to secure app if it is ***
                 // Remove this check for Secure App
-                if (year > 1971) {
-                  // *** Get a Modal popup for messages going to display these warnings ***
-                  console.log("Download not active on Public Application. Log In to download...");
-                } else {
-                  var params = {
-                    Photo_Name: photoName,
-                    Year: yearStr,
-                    Collection: Collection
+                var params = {
+                  Photo_Name: photoName,
+                  Year: yearStr,
+                  Collection: Collection
+                };
+                console.log(params)
+                // Submit Job for Geoprocessing
+                geoprocessor.submitJob(gpUrl, params).then((jobInfo) =>{
+                  console.log("Running job: " + jobInfo.jobId);
+
+                  const options = {
+                    interval: 1000,
+                    statusCallback: (j) => {
+                      console.log("Job Status: " + j.jobStatus);
+                    }
                   };
-                  console.log(params)
-                  // Submit Job for Geoprocessing
-                  geoprocessor.submitJob(gpUrl, params).then((jobInfo) =>{
-                    console.log("Running job: " + jobInfo.jobId);
 
-                    const options = {
-                      interval: 1000,
-                      statusCallback: (j) => {
-                        console.log("Job Status: " + j.jobStatus);
-                      }
-                    };
-
-                    jobInfo.waitForJobCompletion(options).then(() => {
-                      jobInfo.fetchResultData("Deliverable").then((result) => {
-                        event.action.image = "None";
-                        event.action.className = "esri-icon-check-mark"; // Upon completion, display a check mark
-                        const link = result.value.url;
-                        window.location.assign(link.trim()); // Link should be fine, but trim whitespace just in case...
-                        console.log(photoName + " packaged and delivered!")
-                      });
+                  jobInfo.waitForJobCompletion(options).then(() => {
+                    jobInfo.fetchResultData("Deliverable").then((result) => {
+                      event.action.image = "None";
+                      event.action.className = "esri-icon-check-mark"; // Upon completion, display a check mark
+                      const link = result.value.url;
+                      window.location.assign(link.trim()); // Link should be fine, but trim whitespace just in case...
+                      console.log(photoName + " packaged and delivered!")
                     });
                   });
-                  // Add error Handling
-                }
+                });
+                // Add error Handling
               } else {
                 console.log("Photo not available for download, sorry.")
               }
@@ -343,33 +361,38 @@ export default class App extends Component {
             } else if (event.action.id === "view-photo") {
               // Collect relevant attributes to populate the Service URL for the specific photo
               var serviceURL = "https://madgic.trentu.ca/arcgis/rest/services/airphoto/y"
+              var serviceURL_Secure = "https://madgic.trentu.ca/arcgis/rest/services/airphoto_secure/y"
               var naplService = "_Ref/ImageServer";
               var mnrfService = "MNR_Ref/ImageServer";
               console.log(year);
               console.log(Collection);
-              if (Collection === "NAPL") {
-                serviceURL = serviceURL + yearStr + naplService;
-              } else if (Collection === "MNRF") {
-                serviceURL = serviceURL + yearStr + mnrfService;
-              };
-              var defExp = "OBJECTID = " + String(photoID);
-              if (year > 1971) {
-                // Insert Error or disable View button
-                console.log("Viewing is not active for this photo.")
+              if (yearDiff > 51) {
+                if (Collection === "NAPL") {
+                  serviceURL = serviceURL + yearStr + naplService;
+                } else if (Collection === "MNRF") {
+                  serviceURL = serviceURL + yearStr + mnrfService;
+                };
+                var defExp = "OBJECTID = " + String(photoID);
               } else {
-                console.log(serviceURL)
-                const photoView = new ImageryLayer({
-                  url:
-                    serviceURL,
-                    definitionExpression: defExp,
-                    title: yearStr + ": " + photoName
-                });
-                map.add(photoView, 0); // Add photos with unique names derived from PHOTOID attribute
-                map.reorder(photoView, 1);
-                photoView.load().then(function(){
-                  console.log(photoName + " added to map successfully.");
-                });
+                if (Collection === "NAPL") {
+                  serviceURL = serviceURL_Secure + yearStr + naplService;
+                } else if (Collection === "MNRF") {
+                  serviceURL = serviceURL_Secure + yearStr + mnrfService;
+                };
+                var defExp = "OBJECTID = " + String(photoID_Secure);
               }
+              console.log(serviceURL)
+              const photoView = new ImageryLayer({
+                url:
+                  serviceURL,
+                  definitionExpression: defExp,
+                  title: yearStr + ": " + photoName
+              });
+              map.add(photoView, 0); // Add photos with unique names derived from PHOTOID attribute
+              map.reorder(photoView, 1);
+              photoView.load().then(function(){
+                console.log(photoName + " added to map successfully.");
+              });
             }
           });
         });
