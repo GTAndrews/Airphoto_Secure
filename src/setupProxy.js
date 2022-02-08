@@ -4,7 +4,7 @@ module.exports = function(app) {
   app.use(
       '/api',
       createProxyMiddleware({
-          target: 'http://madgic.trentu.ca/proxy.ashx',
+          target: 'https://madgic.trentu.ca/proxy/proxy.ashx',
           changeOrigin: true,
       })
   )

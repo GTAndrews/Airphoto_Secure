@@ -1,5 +1,5 @@
 {
-  "name": "aptest",
+  "name": "airphoto_secure",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -73,7 +73,7 @@
       "last 1 firefox version",
       "last 1 safari version"
     ],
-    "proxy": "http://madgic.trentu.ca/proxy.ashx"
+    "proxy": "https://madgic.trentu.ca/proxy/proxy.ashx"
   },
   "devDependencies": {
     "@testing-library/react": "^11.0.4",

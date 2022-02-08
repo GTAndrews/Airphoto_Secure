@@ -1,5 +1,4 @@
-import React, { Component, useEffect } from 'react';
-import Modal from 'reactstrap';
+import React, { Component } from 'react';
 import 'bootstrap/dist/css/bootstrap.css';
 import '@esri/calcite-components';
 import { loadReCaptcha } from 'react-recaptcha-v3';
@@ -12,7 +11,7 @@ import { rollTemplate } from 'components/popup';
 
 import './App.scss';
 
-// configure esri-loader to use version 4.20 from the ArcGIS CDN
+// configure esri-loader to use version 4.22 from the ArcGIS CDN
 // NOTE: make sure this is called once before any calls to loadModules()
 setDefaultOptions({
   version: esriVersion,
@@ -29,7 +28,8 @@ export default class App extends Component {
     // Set up ArcGIS Javascript Application components
     loadModules([
       'esri/config',
-      'esri/Map', 
+      'esri/Map',
+      'esri/core/urlUtils',
       'esri/views/MapView',
       'esri/widgets/Home',
       'esri/widgets/BasemapToggle',
@@ -41,38 +41,17 @@ export default class App extends Component {
       'esri/rest/support/Query',
       'esri/widgets/Search',
       'esri/widgets/LayerList',
-      'esri/widgets/Expand',
-      'esri/identity/ServerInfo',
-      'esri/identity/IdentityManager',
-      'esri/core/urlUtils'])
-      .then(([esriConfig, Map, MapView, Home, BasemapToggle, FeatureLayer, ImageryLayer, TextContent, geoprocessor, QueryTask, Query, Search, LayerList, Expand, ServerInfo, IdentityManager, urlUtils]) => {
-        esriConfig.apiKey = "AAPKb42644aac2934540be2d19f2b115a6b1B-iN07qcT7mU1Vi1CG5ObQmUivOGDb6-catxRv7DTAY0ZqQheIYXw1-q2MPPPzgv"
-        esriConfig.request.proxyURL = '/handlers/proxy.ashx';
-        esriConfig.request.forceProxy = true;
-        
-        const d = new Date();
-        const currYear = d.getFullYear();
-
-        // Generate and register token for secure services
-        let serverInfo = new ServerInfo();
-        serverInfo.server = "https://madgic.trentu.ca";
-        serverInfo.tokenServiceUrl = "https://madgic.trentu.ca/arcgis/tokens/generateToken";
-        serverInfo.hasServer = true;
-        var userInfo = {
-          username : "ap_secure",
-          password : "*9o=5hJ4*!8L0sk",
-          referer : "requestip"
-        };
-        IdentityManager.generateToken(serverInfo, userInfo).then(function(response){
-          response.server = serverInfo.server;
-          response.userId = userInfo.username;
-          IdentityManager.registerToken(response);
-          console.log(response);
-          let token = response.token;
-          console.log(token);
-          return token;
+      'esri/widgets/Expand'])
+      .then(([esriConfig, Map, urlUtils, MapView, Home, BasemapToggle, FeatureLayer, ImageryLayer, TextContent, geoprocessor, QueryTask, Query, Search, LayerList, Expand]) => {
+        esriConfig.apiKey = "AAPKee4a15e7aa0143dba31e8b9fe5002ffdrEIPOSe7m5N8C4mmcSlAhrD5QCGClRGb-niTHnHzZx1PA5Ofkx6qf8PDlMzlayU3"
+        esriConfig.request.proxyUrl = "https://madgic.trentu.ca/proxy/proxy.ashx";
+        urlUtils.addProxyRule({
+          urlPrefix: "https://madgic.trentu.ca/arcgis/rest/services/airphoto_secure/",
+          proxyUrl: "https://madgic.trentu.ca/proxy/proxy.ashx"
         });
         
+        const d = new Date();
+        const currYear = d.getFullYear();       
 
         const map = new Map({
           basemap: 'topo-vector',
@@ -291,11 +270,11 @@ export default class App extends Component {
               // Only show popups for the Photo Points
               if (graphicTemplate.title === "Photo <b>{LABEL}</b> captured in <b>{Year_}</b>") {
                 console.log(graphic.attributes.DownloadURL)
-                console.log(graphic.attributes.PHOTOID + " viewing status: " + graphic.attributes.ViewURL)
-                // *** THIS WASN'T WORKING FOR SELECTIONS WITH MULTIPLE PHOTOS IN A SINGLE POPUP ***
-                //graphicTemplate.actions.items[0].disabled = graphic.attributes.ViewURL ? false : true;
-                //graphicTemplate.actions.items[1].disabled = graphic.attributes.DownloadURL ? false : true;
-                // Set default icon for the Download Action
+                if (graphic.attributes.RasterID_Secure){
+                  console.log(graphic.attributes.PHOTOID + " viewing status: Viewable")
+                } else {
+                  console.log(graphic.attributes.PHOTOID + " viewing status: Not Available")
+                };
                 graphicTemplate.actions.items[1].className = "esri-icon-download";
               }
             };
@@ -320,43 +299,34 @@ export default class App extends Component {
             if (event.action.id === "download-photo") {
               event.action.className = "None";
               event.action.image = gear; // Set a "thinking" type icon
-              // DownloadURL is no longer hard coded but this field acts as a flag for the ability to download
-              var info = attributes.DownloadURL;  // *** Convert this field to a binary ***
-              // Make sure the 'Download URL' field value is not null
-              if (info) {
-                // *** Check if the year is under copyright and redirect to secure app if it is ***
-                // Remove this check for Secure App
-                var params = {
-                  Photo_Name: photoName,
-                  Year: yearStr,
-                  Collection: Collection
+              var params = {
+                Photo_Name: photoName,
+                Year: yearStr,
+                Collection: Collection
+              };
+              console.log(params)
+              // Submit Job for Geoprocessing
+              geoprocessor.submitJob(gpUrl, params).then((jobInfo) =>{
+                console.log("Running job: " + jobInfo.jobId);
+
+                const options = {
+                  interval: 1000,
+                  statusCallback: (j) => {
+                    console.log("Job Status: " + j.jobStatus);
+                  }
                 };
-                console.log(params)
-                // Submit Job for Geoprocessing
-                geoprocessor.submitJob(gpUrl, params).then((jobInfo) =>{
-                  console.log("Running job: " + jobInfo.jobId);
 
-                  const options = {
-                    interval: 1000,
-                    statusCallback: (j) => {
-                      console.log("Job Status: " + j.jobStatus);
-                    }
-                  };
-
-                  jobInfo.waitForJobCompletion(options).then(() => {
-                    jobInfo.fetchResultData("Deliverable").then((result) => {
-                      event.action.image = "None";
-                      event.action.className = "esri-icon-check-mark"; // Upon completion, display a check mark
-                      const link = result.value.url;
-                      window.location.assign(link.trim()); // Link should be fine, but trim whitespace just in case...
-                      console.log(photoName + " packaged and delivered!")
-                    });
+                jobInfo.waitForJobCompletion(options).then(() => {
+                  jobInfo.fetchResultData("Deliverable").then((result) => {
+                    event.action.image = "None";
+                    event.action.className = "esri-icon-check-mark"; // Upon completion, display a check mark
+                    const link = result.value.url;
+                    window.location.assign(link.trim()); // Link should be fine, but trim whitespace just in case...
+                    console.log(photoName + " packaged and delivered!")
                   });
                 });
-                // Add error Handling
-              } else {
-                console.log("Photo not available for download, sorry.")
-              }
+              });
+              // Add error Handling
             // --- View operation working with URL calls for each photo from PHOTOID and Year_ attributes ---
             } else if (event.action.id === "view-photo") {
               // Collect relevant attributes to populate the Service URL for the specific photo
@@ -364,6 +334,7 @@ export default class App extends Component {
               var serviceURL_Secure = "https://madgic.trentu.ca/arcgis/rest/services/airphoto_secure/y"
               var naplService = "_Ref/ImageServer";
               var mnrfService = "MNR_Ref/ImageServer";
+              var defExp = "OBJECTID = " + String(photoID);
               console.log(year);
               console.log(Collection);
               if (yearDiff > 51) {
@@ -372,21 +343,20 @@ export default class App extends Component {
                 } else if (Collection === "MNRF") {
                   serviceURL = serviceURL + yearStr + mnrfService;
                 };
-                var defExp = "OBJECTID = " + String(photoID);
               } else {
+                // Set token to Secure URL
                 if (Collection === "NAPL") {
                   serviceURL = serviceURL_Secure + yearStr + naplService;
                 } else if (Collection === "MNRF") {
                   serviceURL = serviceURL_Secure + yearStr + mnrfService;
                 };
-                var defExp = "OBJECTID = " + String(photoID_Secure);
+                defExp = "OBJECTID = " + String(photoID_Secure);
               }
               console.log(serviceURL)
-              const photoView = new ImageryLayer({
-                url:
-                  serviceURL,
-                  definitionExpression: defExp,
-                  title: yearStr + ": " + photoName
+              let photoView = new ImageryLayer({
+                url: serviceURL,
+                definitionExpression: defExp,
+                title: yearStr + ": " + photoName
               });
               map.add(photoView, 0); // Add photos with unique names derived from PHOTOID attribute
               map.reorder(photoView, 1);
