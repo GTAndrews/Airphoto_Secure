@@ -23,7 +23,6 @@ console.log(Header); // should be included in Modal popup
 export default class App extends Component {
 
   componentDidMount = () => {
-    //loadReCaptcha('6Lcg4s4ZAAAAAB-TWHuox2PbiRAdV-ynnZLXyq4l') // localhost dev reCAPTCHA
     loadReCaptcha('6LfAU7wUAAAAAHvGI0EUUruTd5AXr282zg6EXZdS') // MaDGIC reCAPTCHA
     // Set up ArcGIS Javascript Application components
     loadModules([
@@ -43,10 +42,10 @@ export default class App extends Component {
       'esri/widgets/LayerList',
       'esri/widgets/Expand'])
       .then(([esriConfig, Map, urlUtils, MapView, Home, BasemapToggle, FeatureLayer, ImageryLayer, TextContent, geoprocessor, QueryTask, Query, Search, LayerList, Expand]) => {
-        esriConfig.apiKey = "AAPKee4a15e7aa0143dba31e8b9fe5002ffdrEIPOSe7m5N8C4mmcSlAhrD5QCGClRGb-niTHnHzZx1PA5Ofkx6qf8PDlMzlayU3"
+        esriConfig.apiKey = "AAPKb42644aac2934540be2d19f2b115a6b1B-iN07qcT7mU1Vi1CG5ObQmUivOGDb6-catxRv7DTAY0ZqQheIYXw1-q2MPPPzgv";
         esriConfig.request.proxyUrl = "https://madgic.trentu.ca/proxy/proxy.ashx";
         urlUtils.addProxyRule({
-          urlPrefix: "https://madgic.trentu.ca/arcgis/rest/services/airphoto_secure/",
+          urlPrefix: "https://madgic-trentu-ca.proxy1.lib.trentu.ca",
           proxyUrl: "https://madgic.trentu.ca/proxy/proxy.ashx"
         });
         
@@ -54,7 +53,7 @@ export default class App extends Component {
         const currYear = d.getFullYear();       
 
         const map = new Map({
-          basemap: 'topo-vector',
+          basemap: 'osm',
         });
 
         // eslint-disable-next-line no-unused-vars
@@ -62,7 +61,7 @@ export default class App extends Component {
           map: map,
           container: 'mapContainer',
 		    // basemap: 'gray-vector', // this is a nice basemap for basic apps
-          basemap: 'topo-vector',
+          basemap: 'osm',
           center: [-78.3, 44.3],
           zoom: 8,
           popup: {
